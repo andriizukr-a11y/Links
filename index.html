@@ -194,18 +194,29 @@
       dir: 'bookmarks'
     };
 
+    // Назви табів (файл без .xbel -> гарна назва)
+    // Додавайте свої: 'імя_файлу': 'Гарна назва'
+    const TAB_NAMES = {
+      'links1': 'Спорт',
+      'links2': 'Різне',
+      // 'work': 'Робота',
+      // 'personal': 'Особисте'
+    };
+
     let currentTab = null;
     const bookmarksData = {};
     let filesList = [];
 
-    // Генерація ID з імені файлу
+    // Генерація ID з імені файлу (без .xbel)
     function fileId(filename) {
-      return filename.replace(/[^a-zA-Z0-9]/g, '_');
+      return filename.replace(/\.xbel$/i, '').replace(/[^a-zA-Z0-9]/g, '_');
     }
 
-    // Форматування імені табу (без .xbel)
+    // Форматування імені табу
     function formatTabName(filename) {
-      return filename.replace(/\.xbel$/i, '');
+      const baseName = filename.replace(/\.xbel$/i, '');
+      // Використовуємо гарну назву якщо є, інакше ім'я файлу
+      return TAB_NAMES[baseName] || baseName;
     }
 
     // Створення табів
@@ -239,6 +250,9 @@
       if (files.length > 0) {
         currentTab = fileId(files[0].name);
       }
+
+      // Відкриваємо таб з hash якщо є
+      openTabFromHash();
     }
 
     // Перемикання табів
@@ -250,6 +264,17 @@
 
       document.querySelector(`[data-tab-id="${tabId}"]`).classList.add('active');
       document.getElementById(`content-${tabId}`).classList.add('active');
+
+      // Оновлюємо URL hash
+      window.location.hash = tabId;
+    }
+
+    // Відкрити таб з URL hash
+    function openTabFromHash() {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && document.querySelector(`[data-tab-id="${hash}"]`)) {
+        switchTab(hash);
+      }
     }
 
     // Парсинг XML
@@ -372,6 +397,9 @@
         tabsContainer.innerHTML = `<div class="error">Помилка завантаження директорії: ${err.message}</div>`;
       }
     }
+
+    // Слухаємо зміни hash (кнопки назад/вперед)
+    window.addEventListener('hashchange', openTabFromHash);
 
     // Запуск
     loadDirectory();
