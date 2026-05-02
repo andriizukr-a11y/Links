@@ -229,10 +229,7 @@
         const content = document.createElement('div');
         content.id = `content-${id}`;
         content.className = 'tab-content' + (index === 0 ? ' active' : '');
-        content.innerHTML = `
-          <div class="section-title">${tabName}</div>
-          <div id="output-${id}"></div>
-        `;
+        content.innerHTML = `<div id="output-${id}"></div>`;
         contentsContainer.appendChild(content);
 
         // Зберігаємо шлях до файлу
