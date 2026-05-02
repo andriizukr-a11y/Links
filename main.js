@@ -1,0 +1,28 @@
+/* ========== ГОЛОВНИЙ ФАЙЛ ========== */
+
+/* ============ НАЛАШТУВАННЯ ============ */
+
+const CONFIG = {
+  repo: 'andriizukr-a11y/Links',
+  dir: 'bookmarks',
+  
+  ui: {
+    titleSuffix: 'Посилання',
+    showCounts: true
+  },
+  
+  tabs: [
+    'Спорт',
+    'Різне'
+  ]
+};
+
+/* ============ КІНЕЦЬ НАЛАШТУВАНЬ ============ */
+
+// Глобальні змінні
+const bookmarksData = {};
+
+// Ініціалізація після завантаження всіх модулів
+document.addEventListener('DOMContentLoaded', function() {
+  loadDirectory();
+});
