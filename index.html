@@ -79,8 +79,7 @@
   </div>
 
   <script>
-    const xmlFile = "bookmarks.xbel";
-    const rawUrl = "https://raw.githubusercontent.com/andriizukr-a11y/Links1/main/bookmarks.xbel";
+    const apiUrl = "/api/bookmarks";
 
     let allBookmarks = [];
 
@@ -135,67 +134,34 @@
       return div.innerHTML;
     }
 
-    // Завантаження файлу
+    // Завантаження з Vercel API (миттєво)
     function loadFile() {
       const output = document.getElementById("output");
       
-      console.log('[DEBUG] Починаємо завантаження');
-      console.log('[DEBUG] Protocol:', window.location.protocol);
-      console.log('[DEBUG] Спроба завантажити:', xmlFile);
-      
-      // Спроба 1: локальний файл через XMLHttpRequest
+      console.log('[API] Завантажуємо з Vercel API');
       const xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function() {
-        console.log('[DEBUG] XHR state:', xhr.readyState, 'status:', xhr.status);
-        
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200 || (xhr.status === 0 && xhr.responseText)) {
-            console.log('[LOCAL] Завантажено локальний файл');
-            console.log('[LOCAL] Довжина даних:', xhr.responseText.length);
-            parseAndDisplayBookmarks(xhr.responseText);
-          } else {
-            console.log('[LOCAL] Не вдалося, переходимо на GitHub...');
-            loadFromGitHub();
-          }
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          console.log('[API] Завантажено з Vercel API');
+          parseAndDisplayBookmarks(xhr.responseText);
+        } else if (xhr.readyState === 4) {
+          console.log('[API] Помилка:', xhr.status);
+          showError();
         }
       };
       xhr.onerror = function() {
-        console.log('[LOCAL] XHR error, переходимо на GitHub');
-        loadFromGitHub();
+        console.log('[API] XHR error');
+        showError();
       };
       
-      const url = xmlFile + '?nocache=' + Date.now();
-      console.log('[DEBUG] Відкриваю URL:', url);
+      // Унікальний URL для уникнення кешування
+      const url = apiUrl + '?t=' + Date.now();
+      console.log('[API] URL:', url);
       xhr.open('GET', url, true);
       xhr.send();
       
-      // Завантаження з GitHub (прямо з raw URL)
-      function loadFromGitHub() {
-        console.log('[GITHUB] Завантажуємо з raw URL');
-        const xhr2 = new XMLHttpRequest();
-        xhr2.onreadystatechange = function() {
-          if (xhr2.readyState === 4 && (xhr2.status === 200 || xhr2.status === 0)) {
-            console.log('[GITHUB] Завантажено з GitHub');
-            parseAndDisplayBookmarks(xhr2.responseText);
-          } else if (xhr2.readyState === 4) {
-            console.log('[GITHUB] Помилка:', xhr2.status);
-            showError();
-          }
-        };
-        xhr2.onerror = function() {
-          console.log('[GITHUB] XHR error');
-          showError();
-        };
-        
-        // Унікальний URL для уникнення кешування
-        const url = rawUrl + '?t=' + Date.now() + '&v=' + Math.random();
-        console.log('[GITHUB] URL:', url);
-        xhr2.open('GET', url, true);
-        xhr2.send();
-      }
-      
       function showError() {
-        output.innerHTML = '<div class="error">Помилка: Не вдалося завантажити bookmarks.xbel ні локально, ні з GitHub</div>';
+        output.innerHTML = '<div class="error">Помилка: Не вдалося завантажити bookmarks.xbel з API</div>';
       }
     }
 
