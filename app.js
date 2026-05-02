@@ -1,14 +1,7 @@
 /* ---------- APP (TABS + LOADING) ---------- */
 
-let currentTab = null;
-
 function fileId(filename) {
   return filename.replace(/\.xbel$/i, '').replace(/[^a-zA-Z0-9]/g, '_');
-}
-
-function formatTabName(filename) {
-  const baseName = filename.replace(/\.xbel$/i, '');
-  return TAB_NAMES[baseName] || baseName;
 }
 
 function createTabs() {
@@ -50,20 +43,13 @@ function createTabs() {
   });
 
   if (CONFIG.tabs.length > 0) {
-    const firstFileName = `tab1.xbel`;
-    currentTab = fileId(firstFileName);
-    // Встановлюємо початковий title
-    const firstTabName = CONFIG.tabs[0];
-    document.title = `${firstTabName} – ${CONFIG.ui.titleSuffix}`;
+    document.title = `${CONFIG.tabs[0]} – ${CONFIG.ui.titleSuffix}`;
   }
 
-  // Відкриваємо таб з хешу ПІСЛЯ створення всіх табів
-  setTimeout(() => openTabFromHash(), 0);
+  openTabFromHash();
 }
 
 function switchTab(tabId) {
-  currentTab = tabId;
-
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
@@ -86,49 +72,34 @@ function openTabFromHash() {
 }
 
 async function loadFileData(path) {
-  // Завантаження з локальної папки (миттєво)
-  const localUrl = path;
-  
   try {
-    console.log("Завантаження з локальної папки:", localUrl);
-    const response = await fetch(localUrl);
-    
+    const response = await fetch(path);
     if (!response.ok) {
-      throw new Error(`Local HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
-    const xmlText = await response.text();
-    return parseBookmarks(xmlText);
-  } catch (localError) {
-    console.error("Не вдалося завантажити локальний файл:", localError.message);
-    throw new Error(`Не вдалося завантажити ${path}: ${localError.message}`);
+    return parseBookmarks(await response.text());
+  } catch (err) {
+    throw new Error(`Не вдалося завантажити ${path}: ${err.message}`);
   }
 }
 
 async function loadDirectory() {
-  const tabsContainer = document.getElementById('tabs-container');
-
   try {
-    tabsContainer.innerHTML = '';
     createTabs();
 
-    // Чекаємо на завантаження ВСІХ файлів та іконок
     const loadPromises = CONFIG.tabs.map(async (tabName, index) => {
       const fileName = `tab${index + 1}.xbel`;
       const id = fileId(fileName);
       const bookmarks = await loadFileData(`${CONFIG.dir}/${fileName}`);
       bookmarksData[id].bookmarks = bookmarks;
-      const iconPromise = displayBookmarks(id, bookmarks);
-      return iconPromise;
+      displayBookmarks(id, bookmarks);
     });
 
     await Promise.all(loadPromises);
-
-    // Тільки після завантаження всіх даних та іконок ховаємо прелоадер
     document.getElementById('preloader').classList.add('hidden');
 
   } catch (err) {
-    tabsContainer.innerHTML =
+    document.getElementById('tabs-container').innerHTML =
       `<div class="error">Помилка завантаження: ${err.message}</div>`;
     document.getElementById('preloader').classList.add('hidden');
   }
