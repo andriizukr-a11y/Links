@@ -71,7 +71,7 @@ function displayBookmarks(tabId, bookmarks) {
     html += `
       <div class="bookmark-item">
         ${iconHtml}
-        <a href="${bookmark.href}" target="_blank">
+        <a href="${bookmark.href}" target="_blank" rel="noopener noreferrer">
           ${escapeHtml(bookmark.title)}
         </a>
       </div>
