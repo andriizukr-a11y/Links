@@ -25,8 +25,10 @@ function displayBookmarks(tabId, bookmarks) {
   const countEl = document.getElementById(`count-${tabId}`);
 
   const realBookmarks = bookmarks.filter(b => !b.href.includes('separator.floccus.org'));
-  countEl.textContent = `(${realBookmarks.length})`;
-  countEl.classList.add('ready');
+  if (countEl) {
+    countEl.textContent = `(${realBookmarks.length})`;
+    countEl.classList.add('ready');
+  }
 
   if (!bookmarks.length) {
     output.innerHTML = '<div class="no-results">Закладки не знайдено</div>';
@@ -54,10 +56,14 @@ function displayBookmarks(tabId, bookmarks) {
       iconHtml = `<span style="margin-right: 12px;">🔗</span>`;
     }
 
+    const domainLabel = domain ? `<span class="bookmark-domain">${domain}</span>` : '';
     html += `
       <a class="bookmark-item" href="${bookmark.href}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(bookmark.title)}">
         ${iconHtml}
-        <span class="bookmark-title">${escapeHtml(cleanTitle(bookmark.title))}</span>
+        <span class="bookmark-text">
+          <span class="bookmark-title">${escapeHtml(cleanTitle(bookmark.title))}</span>
+          ${domainLabel}
+        </span>
       </a>
     `;
   }
@@ -68,7 +74,9 @@ function displayBookmarks(tabId, bookmarks) {
 }
 
 function cleanTitle(title) {
-  return title.replace(/\s-\s(YouTube|Google Диск|Google Drive)$/i, '').trim();
+  const sites = (CONFIG.cleanTitleSites || []).join('|');
+  if (!sites) return title.trim();
+  return title.replace(new RegExp(`\\s-\\s(${sites})$`, 'i'), '').trim();
 }
 
 function escapeHtml(text) {
@@ -77,14 +85,34 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+const FAVICON_CACHE_PREFIX = 'fav_';
+const FAVICON_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+
+function getFaviconCache(domain) {
+  try {
+    const raw = localStorage.getItem(FAVICON_CACHE_PREFIX + domain);
+    if (!raw) return null;
+    const { src, ts } = JSON.parse(raw);
+    if (Date.now() - ts > FAVICON_CACHE_TTL) { localStorage.removeItem(FAVICON_CACHE_PREFIX + domain); return null; }
+    return src;
+  } catch { return null; }
+}
+
+function setFaviconCache(domain, src) {
+  try { localStorage.setItem(FAVICON_CACHE_PREFIX + domain, JSON.stringify({ src, ts: Date.now() })); } catch {}
+}
+
 function loadFavicons(container) {
   container.querySelectorAll('.bookmark-icon[data-src]').forEach(img => {
     const primarySrc = img.dataset.src;
     const domain = img.dataset.domain || '';
 
+    const cached = getFaviconCache(domain);
+    if (cached) { img.src = cached; return; }
+
     function tryLoad(url, fallback) {
       const loader = new Image();
-      loader.onload = () => { img.src = url; };
+      loader.onload = () => { img.src = url; setFaviconCache(domain, url); };
       if (fallback) loader.onerror = () => tryLoad(fallback, null);
       loader.src = url;
     }

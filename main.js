@@ -10,6 +10,12 @@ const CONFIG = {
     showCounts: true
   },
   
+  cleanTitleSites: [
+    'YouTube',
+    'Google Диск',
+    'Google Drive'
+  ],
+
   customIcons: {
     'docs.google.com': 'data/favicons/spreadsheets.ico',
     'sheets.google.com': 'data/favicons/spreadsheets.ico',

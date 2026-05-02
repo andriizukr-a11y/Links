@@ -32,7 +32,13 @@ function createTabs() {
     const content = document.createElement('div');
     content.id = `content-${id}`;
     content.className = 'tab-content' + (index === 0 ? ' active' : '');
-    content.innerHTML = `<div id="output-${id}"></div>`;
+    content.innerHTML = `
+      <div class="search-wrapper">
+        <input class="search-input" id="search-${id}" type="search" placeholder="Пошук..." autocomplete="off">
+        <span class="search-count" id="search-count-${id}"></span>
+      </div>
+      <div id="output-${id}"></div>
+    `;
     contentsContainer.appendChild(content);
 
     // Зберігаємо дані таба
@@ -55,6 +61,12 @@ function switchTab(tabId) {
 
   document.querySelector(`[data-tab-id="${tabId}"]`).classList.add('active');
   document.getElementById(`content-${tabId}`).classList.add('active');
+
+  const searchEl = document.getElementById(`search-${tabId}`);
+  if (searchEl) {
+    searchEl.value = '';
+    filterBookmarks(tabId, '');
+  }
 
   // Оновлюємо title сторінки
   const tabData = bookmarksData[tabId];
@@ -84,25 +96,99 @@ async function loadFileData(path) {
 }
 
 async function loadDirectory() {
-  try {
-    createTabs();
+  createTabs();
 
-    const loadPromises = CONFIG.tabs.map(async (tabName, index) => {
-      const fileName = `tab${index + 1}.xbel`;
-      const id = fileId(fileName);
+  const loadPromises = CONFIG.tabs.map(async (tabName, index) => {
+    const fileName = `tab${index + 1}.xbel`;
+    const id = fileId(fileName);
+    try {
       const bookmarks = await loadFileData(`${CONFIG.dir}/${fileName}`);
       bookmarksData[id].bookmarks = bookmarks;
       displayBookmarks(id, bookmarks);
-    });
+    } catch (err) {
+      const output = document.getElementById(`output-${id}`);
+      if (output) output.innerHTML = `<div class="error">Помилка: ${err.message}</div>`;
+    }
+  });
 
-    await Promise.all(loadPromises);
-    document.getElementById('preloader').classList.add('hidden');
+  await Promise.allSettled(loadPromises);
+  document.getElementById('preloader').classList.add('hidden');
+  initSearch();
+}
 
-  } catch (err) {
-    document.getElementById('tabs-container').innerHTML =
-      `<div class="error">Помилка завантаження: ${err.message}</div>`;
-    document.getElementById('preloader').classList.add('hidden');
+function filterBookmarks(tabId, query) {
+  const output = document.getElementById(`output-${tabId}`);
+  if (!output) return;
+  const q = query.trim().toLowerCase();
+  const items = output.querySelectorAll('.bookmark-item');
+  const separators = output.querySelectorAll('.separator');
+  const total = items.length;
+  let visible = 0;
+
+  items.forEach(item => {
+    const title = item.querySelector('.bookmark-title')?.textContent.toLowerCase() || '';
+    const domain = item.querySelector('.bookmark-domain')?.textContent.toLowerCase() || '';
+    const match = !q || title.includes(q) || domain.includes(q);
+    item.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+
+  separators.forEach(sep => { sep.style.display = q ? 'none' : ''; });
+
+  const countEl = document.getElementById(`search-count-${tabId}`);
+  if (countEl) countEl.textContent = q ? `${visible} з ${total}` : '';
+
+  const noResults = output.querySelector('.no-results-search');
+  if (!q && noResults) { noResults.remove(); return; }
+  if (q && visible === 0) {
+    if (!noResults) {
+      const el = document.createElement('div');
+      el.className = 'no-results no-results-search';
+      el.textContent = 'Нічого не знайдено';
+      output.appendChild(el);
+    }
+  } else if (noResults) {
+    noResults.remove();
   }
 }
 
+function initSearch() {
+  document.querySelectorAll('.search-input').forEach(input => {
+    const tabId = input.id.replace('search-', '');
+    input.addEventListener('input', () => filterBookmarks(tabId, input.value));
+  });
+}
+
 window.addEventListener('hashchange', openTabFromHash);
+
+window.addEventListener('scroll', () => {
+  document.getElementById('tabs-container').classList.toggle('scrolled', window.scrollY > 10);
+});
+
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement?.tagName;
+  const isInput = tag === 'INPUT' || tag === 'TEXTAREA';
+
+  if ((e.key === '/' || e.key === 'f') && !isInput && !e.ctrlKey && !e.metaKey) {
+    const activTab = document.querySelector('.tab.active');
+    if (!activTab) return;
+    const tabId = activTab.dataset.tabId;
+    const searchEl = document.getElementById(`search-${tabId}`);
+    if (searchEl) { e.preventDefault(); searchEl.focus(); searchEl.select(); }
+    return;
+  }
+
+  if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !isInput) {
+    const tabs = [...document.querySelectorAll('.tab')];
+    const activeIndex = tabs.findIndex(t => t.classList.contains('active'));
+    if (activeIndex === -1) return;
+    const next = e.key === 'ArrowRight'
+      ? tabs[activeIndex + 1]
+      : tabs[activeIndex - 1];
+    if (next) switchTab(next.dataset.tabId);
+  }
+
+  if (e.key === 'Escape' && isInput) {
+    document.activeElement.blur();
+  }
+});
