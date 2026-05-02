@@ -48,7 +48,7 @@ function displayBookmarks(tabId, bookmarks) {
     let iconHtml = '';
     if (domain) {
       const iconSrc = CONFIG.customIcons?.[domain] ?? `https://${domain}/favicon.ico`;
-      iconHtml = `<img class="bookmark-icon" src="${iconSrc}" data-domain="${domain}" onerror="handleFaviconError(this)">`;
+      iconHtml = `<img class="bookmark-icon" src="data/favicons/default.png" data-src="${iconSrc}" data-domain="${domain}">`;
     } else {
       iconHtml = `<span style="margin-right: 12px;">🔗</span>`;
     }
@@ -65,6 +65,7 @@ function displayBookmarks(tabId, bookmarks) {
 
   html += '</div>';
   output.innerHTML = html;
+  loadFavicons(output);
 }
 
 function escapeHtml(text) {
@@ -73,18 +74,21 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-// Fallback для іконок - замінює на default.png
-function handleFaviconError(img) {
-  const domain = img.dataset?.domain || '';
-  const currentSrc = img.src;
-  
-  // Якщо це перша спроба (.ico), пробуємо .png
-  if (currentSrc.endsWith('/favicon.ico')) {
-    img.src = `https://${domain}/favicon.png`;
-    return;
-  }
-  
-  // Замінюємо на default.png
-  img.src = 'data/favicons/default.png';
-  img.onerror = null; // Запобігаємо нескінченному циклу
+function loadFavicons(container) {
+  container.querySelectorAll('.bookmark-icon[data-src]').forEach(img => {
+    const primarySrc = img.dataset.src;
+    const domain = img.dataset.domain || '';
+
+    function tryLoad(url, fallback) {
+      const loader = new Image();
+      loader.onload = () => { img.src = url; };
+      if (fallback) loader.onerror = () => tryLoad(fallback, null);
+      loader.src = url;
+    }
+
+    const fallback = primarySrc.endsWith('/favicon.ico')
+      ? `https://${domain}/favicon.png`
+      : null;
+    tryLoad(primarySrc, fallback);
+  });
 }
