@@ -29,9 +29,10 @@
       height: 16px;
       min-width: 16px;
       min-height: 16px;
-      margin-right: 10px;
-      border-radius: 2px;
+      margin-right: 12px;
+      border-radius: 3px;
       display: block;
+      object-fit: contain;
     }
     
     .separator {
@@ -116,7 +117,7 @@
         
         return `
           <div class="bookmark-item">
-            <img class="bookmark-icon" src="https://www.google.com/s2/favicons?domain=${new URL(bookmark.href).hostname}&sz=16" alt="" onerror="this.style.display='none'">
+            <img class="bookmark-icon" src="https://www.google.com/s2/favicons?domain=${new URL(bookmark.href).hostname}&sz=32" alt="" onerror="this.style.display='none'">
             <a href="${bookmark.href}" target="_blank">${escapeHtml(bookmark.title)}</a>
           </div>
         `;
