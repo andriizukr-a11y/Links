@@ -44,14 +44,21 @@ function displayBookmarks(tabId, bookmarks) {
     }
 
     let domain = '';
+    let urlWithPath = '';
     try {
-      domain = new URL(bookmark.href).hostname;
+      const urlObj = new URL(bookmark.href);
+      domain = urlObj.hostname;
+      urlWithPath = urlObj.hostname + urlObj.pathname;
     } catch {}
 
     let iconHtml = '';
     if (domain) {
-      const iconSrc = CONFIG.customIcons?.[domain] ?? `https://${domain}/favicon.ico`;
-      iconHtml = `<img class="bookmark-icon" src="data/favicons/default.png" data-src="${iconSrc}" data-domain="${domain}">`;
+      const customIconKey = Object.keys(CONFIG.customIcons || {}).find(key => urlWithPath.startsWith(key));
+      if (customIconKey) {
+        iconHtml = `<img class="bookmark-icon" src="${CONFIG.customIcons[customIconKey]}" data-domain="${domain}">`;
+      } else {
+        iconHtml = `<img class="bookmark-icon" src="data/favicons/default.png" data-src="https://${domain}/favicon.ico" data-domain="${domain}">`;
+      }
     } else {
       iconHtml = `<span style="margin-right: 12px;">🔗</span>`;
     }

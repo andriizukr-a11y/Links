@@ -17,14 +17,15 @@ const CONFIG = {
   ],
 
   customIcons: {
-    'docs.google.com': 'data/favicons/spreadsheets.ico',
-    'sheets.google.com': 'data/favicons/spreadsheets.ico',
+    'docs.google.com/document': 'data/favicons/document.ico',
+    'docs.google.com/spreadsheets': 'data/favicons/spreadsheets.ico',
     'onlinevkino.com': 'data/favicons/default.png'
   },
   
   tabs: [
     'Спорт',
-    'Проектор'
+    'Проектор',
+    'Робота'
   ]
 };
 
