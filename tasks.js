@@ -2,8 +2,10 @@
 
 const TASKS_STORAGE_KEY = 'tasks';
 const NOTES_STORAGE_KEY = 'notes';
+const TASKS_VISIBLE_KEY = 'tasksVisible';
 
 let tasks = [];
+let tasksVisible = false;
 
 function loadTasks() {
   const saved = localStorage.getItem(TASKS_STORAGE_KEY);
@@ -105,6 +107,48 @@ function initTasks() {
 
   loadTasks();
   initNotes();
+  initToggleTasks();
+}
+
+/* ---------- ПЕРЕМИКАННЯ ЗАВДАНЬ ---------- */
+
+function loadTasksVisible() {
+  const saved = localStorage.getItem(TASKS_VISIBLE_KEY);
+  if (saved !== null) {
+    tasksVisible = saved === 'true';
+  }
+  applyTasksVisible();
+}
+
+function saveTasksVisible() {
+  localStorage.setItem(TASKS_VISIBLE_KEY, tasksVisible);
+}
+
+function toggleTasks() {
+  tasksVisible = !tasksVisible;
+  saveTasksVisible();
+  applyTasksVisible();
+}
+
+function applyTasksVisible() {
+  const tasksSection = document.querySelector('.tasks-section');
+  const contentSection = document.querySelector('.content-section');
+
+  if (tasksVisible) {
+    tasksSection.classList.remove('hidden');
+    contentSection.classList.remove('no-tasks');
+  } else {
+    tasksSection.classList.add('hidden');
+    contentSection.classList.add('no-tasks');
+  }
+}
+
+function initToggleTasks() {
+  const toggleBtn = document.getElementById('toggle-tasks-btn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleTasks);
+    loadTasksVisible();
+  }
 }
 
 /* ---------- НОТАТКИ ---------- */

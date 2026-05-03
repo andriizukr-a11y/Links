@@ -252,91 +252,6 @@ body {
   transition: opacity 0.3s ease-out, visibility 0.3s;
 }
 
-/* Модальне вікно пароля */
-.password-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-}
-
-.password-modal.hidden {
-  display: none;
-}
-
-.password-modal-content {
-  background: #222;
-  padding: 32px;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 360px;
-  text-align: center;
-}
-
-#password-modal-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0 0 20px 0;
-  color: #fff;
-}
-
-.password-input {
-  width: 100%;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: #e0e0e0;
-  font-size: 15px;
-  font-family: inherit;
-  padding: 12px;
-  margin-bottom: 16px;
-  outline: none;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.password-input::placeholder {
-  color: #555;
-}
-
-.password-input:focus {
-  border-color: #4a9eff;
-  background: #252525;
-}
-
-.password-submit-btn {
-  width: 100%;
-  background: #4a9eff;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 12px;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-}
-
-.password-submit-btn:hover {
-  background: #3a8eef;
-}
-
-.password-submit-btn:active {
-  transform: scale(0.98);
-}
-
-.password-error {
-  color: #ff6b6b;
-  font-size: 13px;
-  margin: 12px 0 0 0;
-  min-height: 18px;
-}
-
 .spinner {
   width: 40px;
   height: 40px;
@@ -352,10 +267,14 @@ body {
 
 /* Головний контейнер */
 .main-container {
-  display: flex;
-  gap: 40px;
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+}
+
+.content-wrapper {
+  display: flex;
+  gap: 40px;
   position: relative;
 }
 
@@ -542,8 +461,54 @@ body {
   background: #252525;
 }
 
+/* Кнопка перемикання завдань */
+.toggle-tasks-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+  z-index: 100;
+  opacity: 0.15;
+}
+
+.toggle-tasks-btn:hover {
+  background: transparent;
+  box-shadow: none;
+  opacity: 0.8;
+}
+
+.toggle-tasks-btn:active {
+  transform: scale(0.95);
+}
+
+.toggle-tasks-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Сховати завдання */
+.tasks-section.hidden {
+  display: none;
+}
+
+.content-section.no-tasks {
+  padding-right: 0;
+}
+
 @media (max-width: 900px) {
-  .main-container {
+  .content-wrapper {
     flex-direction: column;
   }
 

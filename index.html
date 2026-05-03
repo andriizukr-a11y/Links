@@ -13,31 +13,27 @@
 
   <div id="preloader"><div class="spinner"></div></div>
 
-  <div id="password-modal" class="password-modal">
-    <div class="password-modal-content">
-      <h2 id="password-modal-title">Введіть пароль</h2>
-      <input type="password" id="password-input" class="password-input" placeholder="Пароль">
-      <button id="password-submit-btn" class="password-submit-btn">Увійти</button>
-      <p id="password-error" class="password-error"></p>
-    </div>
-  </div>
+  <button id="toggle-tasks-btn" class="toggle-tasks-btn" title="Показати/приховати завдання">⚙️</button>
 
   <div class="main-container">
-    <div class="content-section">
-      <div class="tabs" id="tabs-container"></div>
-      <div id="contents-container"></div>
-    </div>
+    <div class="tabs" id="tabs-container"></div>
 
-    <div class="tasks-section">
-      <h2 class="tasks-title">Завдання</h2>
-      <div class="tasks-input-wrapper">
-        <input type="text" id="task-input" class="task-input" placeholder="Додати завдання...">
-        <button id="add-task-btn" class="add-task-btn">+</button>
+    <div class="content-wrapper">
+      <div class="content-section">
+        <div id="contents-container"></div>
       </div>
-      <ul id="tasks-list" class="tasks-list"></ul>
 
-      <h2 class="notes-title">Нотатки</h2>
-      <textarea id="notes-textarea" class="notes-textarea" placeholder="Ваші нотатки..."></textarea>
+      <div class="tasks-section">
+        <h2 class="tasks-title">Завдання</h2>
+        <div class="tasks-input-wrapper">
+          <input type="text" id="task-input" class="task-input" placeholder="Додати завдання...">
+          <button id="add-task-btn" class="add-task-btn">+</button>
+        </div>
+        <ul id="tasks-list" class="tasks-list"></ul>
+
+        <h2 class="notes-title">Нотатки</h2>
+        <textarea id="notes-textarea" class="notes-textarea" placeholder="Ваші нотатки..."></textarea>
+      </div>
     </div>
   </div>
 
