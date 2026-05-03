@@ -48,6 +48,7 @@ body {
   border-radius: 0;
   transition: color 0.2s, border-color 0.2s;
   position: relative;
+  user-select: none;
 }
 
 .tab:hover {
@@ -62,6 +63,16 @@ body {
 
 .tab.active:hover {
   color: #fff;
+}
+
+.tab.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.tab.drag-over {
+  border-bottom-color: #4a9eff;
+  border-bottom-width: 2px;
 }
 
 .tab-count {

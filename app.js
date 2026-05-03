@@ -8,14 +8,19 @@ function createTabs() {
   const tabsContainer = document.getElementById('tabs-container');
   const contentsContainer = document.getElementById('contents-container');
 
-  CONFIG.tabs.forEach((tabName, index) => {
+  // Завантажуємо збережений порядок табів
+  let tabsOrder = JSON.parse(localStorage.getItem('tabsOrder')) || CONFIG.tabs;
+
+  tabsOrder.forEach((tabName, index) => {
     // Генеруємо ім'я файлу з назви таба
-    const fileName = `tab${index + 1}.xbel`;
+    const originalIndex = CONFIG.tabs.indexOf(tabName);
+    const fileName = `tab${originalIndex + 1}.xbel`;
     const id = fileId(fileName);
 
     // Створюємо кнопку таба
     const tabBtn = document.createElement('button');
     tabBtn.className = 'tab' + (index === 0 ? ' active' : '');
+    tabBtn.draggable = true;
     tabBtn.onclick = () => switchTab(id);
     
     // Формуємо контент кнопки
@@ -26,7 +31,16 @@ function createTabs() {
     
     tabBtn.innerHTML = tabContent;
     tabBtn.dataset.tabId = id;
+    tabBtn.dataset.tabName = tabName;
     tabsContainer.appendChild(tabBtn);
+
+    // Додаємо drag-and-drop події
+    tabBtn.addEventListener('dragstart', handleDragStart);
+    tabBtn.addEventListener('dragover', handleDragOver);
+    tabBtn.addEventListener('dragenter', handleDragEnter);
+    tabBtn.addEventListener('dragleave', handleDragLeave);
+    tabBtn.addEventListener('drop', handleDrop);
+    tabBtn.addEventListener('dragend', handleDragEnd);
 
     // Створюємо контент таба
     const content = document.createElement('div');
@@ -48,8 +62,8 @@ function createTabs() {
     };
   });
 
-  if (CONFIG.tabs.length > 0) {
-    document.title = `${CONFIG.tabs[0]} – ${CONFIG.ui.titleSuffix}`;
+  if (tabsOrder.length > 0) {
+    document.title = `${tabsOrder[0]} – ${CONFIG.ui.titleSuffix}`;
   }
 
   openTabFromHash();
@@ -73,6 +87,9 @@ function switchTab(tabId) {
   const tabName = tabData?.name || 'Посилання';
   document.title = `${tabName} – ${CONFIG.ui.titleSuffix}`;
 
+  // Зберігаємо останній відкритий таб
+  localStorage.setItem('lastTab', tabId);
+
   window.location.hash = tabId;
 }
 
@@ -80,6 +97,12 @@ function openTabFromHash() {
   const hash = window.location.hash.replace('#', '');
   if (hash && document.querySelector(`[data-tab-id="${hash}"]`)) {
     switchTab(hash);
+  } else {
+    // Якщо немає hash, відкриваємо останній збережений таб
+    const lastTab = localStorage.getItem('lastTab');
+    if (lastTab && document.querySelector(`[data-tab-id="${lastTab}"]`)) {
+      switchTab(lastTab);
+    }
   }
 }
 
@@ -192,3 +215,74 @@ document.addEventListener('keydown', e => {
     document.activeElement.blur();
   }
 });
+
+/* ---------- DRAG-AND-DROP ДЛЯ ТАБІВ ---------- */
+
+let draggedTab = null;
+
+function handleDragStart(e) {
+  draggedTab = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDragEnter(e) {
+  if (this !== draggedTab) {
+    this.classList.add('drag-over');
+  }
+}
+
+function handleDragLeave(e) {
+  this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+
+  if (draggedTab !== this) {
+    const tabsContainer = document.getElementById('tabs-container');
+    const allTabs = [...tabsContainer.querySelectorAll('.tab')];
+    const draggedIndex = allTabs.indexOf(draggedTab);
+    const dropIndex = allTabs.indexOf(this);
+
+    if (draggedIndex < dropIndex) {
+      tabsContainer.insertBefore(draggedTab, this.nextSibling);
+    } else {
+      tabsContainer.insertBefore(draggedTab, this);
+    }
+
+    // Зберігаємо новий порядок табів
+    const newOrder = [...tabsContainer.querySelectorAll('.tab')].map(tab => tab.dataset.tabName);
+    localStorage.setItem('tabsOrder', JSON.stringify(newOrder));
+
+    // Також переміщуємо відповідний контент
+    const contentsContainer = document.getElementById('contents-container');
+    const draggedContent = document.getElementById(`content-${draggedTab.dataset.tabId}`);
+    const dropContent = document.getElementById(`content-${this.dataset.tabId}`);
+
+    if (draggedIndex < dropIndex) {
+      contentsContainer.insertBefore(draggedContent, dropContent.nextSibling);
+    } else {
+      contentsContainer.insertBefore(draggedContent, dropContent);
+    }
+  }
+
+  return false;
+}
+
+function handleDragEnd(e) {
+  this.classList.remove('dragging');
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('drag-over'));
+  draggedTab = null;
+}
