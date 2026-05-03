@@ -252,6 +252,91 @@ body {
   transition: opacity 0.3s ease-out, visibility 0.3s;
 }
 
+/* Модальне вікно пароля */
+.password-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.password-modal.hidden {
+  display: none;
+}
+
+.password-modal-content {
+  background: #222;
+  padding: 32px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+#password-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #fff;
+}
+
+.password-input {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 15px;
+  font-family: inherit;
+  padding: 12px;
+  margin-bottom: 16px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.password-input::placeholder {
+  color: #555;
+}
+
+.password-input:focus {
+  border-color: #4a9eff;
+  background: #252525;
+}
+
+.password-submit-btn {
+  width: 100%;
+  background: #4a9eff;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.password-submit-btn:hover {
+  background: #3a8eef;
+}
+
+.password-submit-btn:active {
+  transform: scale(0.98);
+}
+
+.password-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin: 12px 0 0 0;
+  min-height: 18px;
+}
+
 .spinner {
   width: 40px;
   height: 40px;
@@ -263,6 +348,213 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Головний контейнер */
+.main-container {
+  display: flex;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.content-section {
+  flex: 1;
+  min-width: 0;
+  padding-right: 360px;
+}
+
+/* Секція завдань */
+.tasks-section {
+  width: 320px;
+  flex-shrink: 0;
+  background: #222;
+  border-radius: 8px;
+  padding: 20px;
+  height: fit-content;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.tasks-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #fff;
+}
+
+.tasks-input-wrapper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.task-input {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-family: inherit;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.task-input::placeholder {
+  color: #555;
+}
+
+.task-input:focus {
+  border-color: #4a9eff;
+  background: #252525;
+}
+
+.add-task-btn {
+  width: 36px;
+  height: 36px;
+  background: #4a9eff;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.add-task-btn:hover {
+  background: #3a8eef;
+}
+
+.add-task-btn:active {
+  transform: scale(0.95);
+}
+
+.tasks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.task-item:hover {
+  background: #252525;
+}
+
+.task-checkbox {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  accent-color: #4a9eff;
+  cursor: pointer;
+}
+
+.task-text {
+  flex: 1;
+  font-size: 14px;
+  color: #e0e0e0;
+  word-break: break-word;
+  transition: color 0.15s, text-decoration 0.15s;
+}
+
+.task-item.completed .task-text {
+  color: #666;
+  text-decoration: line-through;
+}
+
+.task-delete {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  opacity: 0;
+}
+
+.task-item:hover .task-delete {
+  opacity: 1;
+}
+
+.task-delete:hover {
+  color: #ff6b6b;
+  background: #2a2a2a;
+}
+
+/* Нотатки */
+.notes-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+  color: #fff;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 150px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-family: inherit;
+  padding: 12px;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s, background 0.15s;
+  line-height: 1.5;
+}
+
+.notes-textarea::placeholder {
+  color: #555;
+}
+
+.notes-textarea:focus {
+  border-color: #4a9eff;
+  background: #252525;
+}
+
+@media (max-width: 900px) {
+  .main-container {
+    flex-direction: column;
+  }
+
+  .content-section {
+    padding-right: 0;
+  }
+
+  .tasks-section {
+    width: 100%;
+    position: static;
+  }
 }
 
 @media (max-width: 600px) {
