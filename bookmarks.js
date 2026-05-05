@@ -65,7 +65,7 @@ function displayBookmarks(tabId, bookmarks) {
 
     const domainLabel = domain ? `<span class="bookmark-domain">${domain}</span>` : '';
     html += `
-      <a class="bookmark-item" href="${bookmark.href}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(bookmark.title)}">
+      <a class="bookmark-item" href="${bookmark.href}" target="_blank" rel="noopener noreferrer">
         ${iconHtml}
         <span class="bookmark-text">
           <span class="bookmark-title">${escapeHtml(cleanTitle(bookmark.title))}</span>
