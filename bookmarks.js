@@ -65,7 +65,7 @@ function displayBookmarks(tabId, bookmarks) {
 
     const domainLabel = domain ? `<span class="bookmark-domain">${domain}</span>` : '';
     html += `
-      <a class="bookmark-item" href="${bookmark.href}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(bookmark.title)}">
+      <a class="bookmark-item" href="${bookmark.href}" target="_blank" rel="noopener noreferrer" data-full-title="${escapeHtml(bookmark.title)}">
         ${iconHtml}
         <span class="bookmark-text">
           <span class="bookmark-title">${escapeHtml(cleanTitle(bookmark.title))}</span>
@@ -78,6 +78,7 @@ function displayBookmarks(tabId, bookmarks) {
   html += '</div>';
   output.innerHTML = html;
   loadFavicons(output);
+  setupTooltips(output);
 }
 
 function cleanTitle(title) {
@@ -130,3 +131,31 @@ function loadFavicons(container) {
     tryLoad(primarySrc, fallback);
   });
 }
+
+function setupTooltips(container) {
+  container.querySelectorAll('.bookmark-item').forEach(item => {
+    const titleEl = item.querySelector('.bookmark-title');
+    const fullTitle = item.dataset.fullTitle;
+    
+    if (titleEl && fullTitle) {
+      const isTruncated = titleEl.scrollWidth > titleEl.clientWidth;
+      if (isTruncated) {
+        item.setAttribute('title', fullTitle);
+      } else {
+        item.removeAttribute('title');
+      }
+    }
+  });
+}
+
+function updateAllTooltips() {
+  document.querySelectorAll('.bookmarks-list').forEach(list => {
+    setupTooltips(list);
+  });
+}
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(updateAllTooltips, 100);
+});
