@@ -237,15 +237,6 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !isInput) {
-    const tabs = [...document.querySelectorAll('.tab')];
-    const activeIndex = tabs.findIndex(t => t.classList.contains('active'));
-    if (activeIndex === -1) return;
-    const next = e.key === 'ArrowRight'
-      ? tabs[activeIndex + 1]
-      : tabs[activeIndex - 1];
-    if (next) switchTab(next.dataset.tabId);
-  }
 
   if (e.key === 'Escape' && isInput) {
     document.activeElement.blur();
