@@ -178,7 +178,8 @@
   height: 28px;
   background: transparent;
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 18px;
+  font-weight: 300;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,9 +193,9 @@
 }
 
 .notes-gist-settings-btn:hover {
-  background: rgba(255,255,255,0.06);
-  color: var(--text-primary);
-  opacity: 1;
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--accent) !important;
+  opacity: 1 !important;
 }
 
 .notes-gist-settings-btn.gist-btn-syncing {
@@ -709,7 +710,8 @@
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
-  margin-top: 2px;
+  margin: 0;
+  display: block;
 }
 
 .notes-rename-input {

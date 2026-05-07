@@ -300,20 +300,22 @@ function bindNotesEvents(container) {
       e.preventDefault();
       e.stopPropagation();
       const groupEl = header.parentElement;
-      if (header.querySelector('.notes-topic-input')) return;
+      if (header.querySelector('.notes-group-add-input')) return;
+      groupEl.draggable = false;
       const oldName = groupEl.dataset.group;
       const nameEl = header.querySelector('.notes-group-name');
       const input = document.createElement('input');
       input.type = 'text';
-      input.className = 'notes-topic-input';
+      input.className = 'notes-group-add-input';
       input.value = oldName;
 
       const commit = () => {
+        groupEl.draggable = true;
         const trimmed = input.value.trim();
         input.remove();
         nameEl.style.display = '';
         if (!trimmed || trimmed === oldName) return;
-        
+
         if (oldName === getMainGroupName()) {
           setMainGroupName(trimmed);
           const tg = getTopicGroups();
@@ -327,7 +329,7 @@ function bindNotesEvents(container) {
           }
         } else {
           const groups = getNotesGroups();
-          if (groups.includes(trimmed)) return;
+          if (groups.includes(trimmed)) { showToast('Така група вже існує'); return; }
           const idx = groups.indexOf(oldName);
           groups[idx] = trimmed;
           saveNotesGroups(groups);
@@ -339,14 +341,51 @@ function bindNotesEvents(container) {
       };
 
       input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); commit(); }
-        if (e.key === 'Escape') { input.remove(); nameEl.style.display = ''; }
+        if (e.key === 'Enter') { e.preventDefault(); input.removeEventListener('blur', commit); commit(); }
+        if (e.key === 'Escape') { groupEl.draggable = true; input.remove(); nameEl.style.display = ''; }
       });
       input.addEventListener('blur', commit);
 
       nameEl.style.display = 'none';
       nameEl.parentElement.appendChild(input);
+      
+      // Повністю блокуємо drag-and-drop
+      let parent = input;
+      while (parent = parent.parentElement) {
+        if (parent.draggable) {
+          parent._wasDraggable = true;
+          parent.draggable = false;
+        }
+      }
+      
+      input.addEventListener('dragstart', e => e.preventDefault());
+      input.addEventListener('mousedown', e => e.stopPropagation());
+      input.addEventListener('click', e => e.stopPropagation());
+      
+      const cleanup = () => {
+        let parent = input;
+        while (parent = parent.parentElement) {
+          if (parent._wasDraggable) {
+            parent.draggable = true;
+            parent._wasDraggable = false;
+          }
+        }
+      };
+      
+      const originalCommit = commit;
+      commit = () => {
+        cleanup();
+        originalCommit();
+      };
+      
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        if (e.key === 'Escape') { cleanup(); groupEl.draggable = true; input.remove(); nameEl.style.display = ''; }
+      });
+      input.addEventListener('blur', commit);
+      
       input.focus();
+      input.select();
     });
   });
 
@@ -397,7 +436,44 @@ function bindNotesEvents(container) {
     input.addEventListener('blur', commit);
 
     topicsContainer.appendChild(input);
+    
+    // Фокусуємося на полі введення назви теми
     input.focus();
+    
+    // Повністю блокуємо drag-and-drop
+    let parent = input;
+    while (parent = parent.parentElement) {
+      if (parent.draggable) {
+        parent._wasDraggable = true;
+        parent.draggable = false;
+      }
+    }
+    
+    input.addEventListener('dragstart', e => e.preventDefault());
+    input.addEventListener('mousedown', e => e.stopPropagation());
+    input.addEventListener('click', e => e.stopPropagation());
+    
+    const cleanup = () => {
+      let parent = input;
+      while (parent = parent.parentElement) {
+        if (parent._wasDraggable) {
+          parent.draggable = true;
+          parent._wasDraggable = false;
+        }
+      }
+    };
+    
+    const originalCommit = commit;
+    commit = () => {
+      cleanup();
+      originalCommit();
+    };
+    
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { cleanup(); input.remove(); }
+    });
+    input.addEventListener('blur', commit);
   }
 
   container.querySelectorAll('.notes-group-count').forEach(count => {
@@ -452,12 +528,48 @@ function bindNotesEvents(container) {
 
     groupAdd.style.display = 'none';
     groupAdd.parentElement.appendChild(input);
+    
+    // Повністю блокуємо drag-and-drop
+    let parent = input;
+    while (parent = parent.parentElement) {
+      if (parent.draggable) {
+        parent._wasDraggable = true;
+        parent.draggable = false;
+      }
+    }
+    
+    input.addEventListener('dragstart', e => e.preventDefault());
+    input.addEventListener('mousedown', e => e.stopPropagation());
+    input.addEventListener('click', e => e.stopPropagation());
+    
+    const cleanup = () => {
+      let parent = input;
+      while (parent = parent.parentElement) {
+        if (parent._wasDraggable) {
+          parent.draggable = true;
+          parent._wasDraggable = false;
+        }
+      }
+    };
+    
+    const originalCommit = commit;
+    commit = () => {
+      cleanup();
+      originalCommit();
+    };
+    
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { cleanup(); input.remove(); groupAdd.style.display = ''; }
+    });
+    input.addEventListener('blur', commit);
+    
     input.focus();
   });
 
   container.querySelectorAll('.notes-group').forEach(group => {
     group.addEventListener('dblclick', e => {
-      if (e.target.closest('.notes-topic-item') || e.target.closest('.notes-topic-input')) return;
+      if (e.target.closest('.notes-topic-item') || e.target.closest('.notes-topic-input') || e.target.closest('.notes-group-header')) return;
       startAddTopic(group);
     });
   });
@@ -650,6 +762,8 @@ function bindNotesEvents(container) {
 
     item.addEventListener('dblclick', e => {
       if (item.querySelector('.notes-topic-input')) return;
+      e.stopPropagation();
+      item.draggable = false;
       const oldName = item.dataset.topic;
       const nameEl = item.querySelector('.notes-topic-name');
       const input = document.createElement('input');
@@ -657,14 +771,26 @@ function bindNotesEvents(container) {
       input.className = 'notes-topic-input';
       input.value = oldName;
 
+      const cleanup = () => {
+        let parent = input;
+        while (parent = parent.parentElement) {
+          if (parent._wasDraggable) {
+            parent.draggable = true;
+            parent._wasDraggable = false;
+          }
+        }
+      };
+
       const commit = () => {
+        cleanup();
         const trimmed = input.value.trim();
         input.remove();
         nameEl.style.display = '';
         if (!trimmed || trimmed === oldName) return;
         const topics = getNotesTopics();
-        if (topics.includes(trimmed)) return;
+        if (topics.includes(trimmed)) { showToast('Така тема вже існує'); return; }
         const idx = topics.indexOf(oldName);
+        if (idx === -1) return;
         topics[idx] = trimmed;
         saveNotesTopics(topics);
         const data = getNotesData();
@@ -681,14 +807,30 @@ function bindNotesEvents(container) {
       };
 
       input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') { e.preventDefault(); commit(); }
-        if (e.key === 'Escape') { input.remove(); nameEl.style.display = ''; }
+        if (e.key === 'Enter') { e.preventDefault(); input.removeEventListener('blur', commit); commit(); }
+        if (e.key === 'Escape') { cleanup(); input.remove(); nameEl.style.display = ''; }
       });
       input.addEventListener('blur', commit);
 
       nameEl.style.display = 'none';
-      nameEl.parentNode.insertBefore(input, nameEl.nextSibling);
+      nameEl.parentElement.appendChild(input);
+
+      // Фокусуємося на полі введення і виділяємо текст
       input.focus();
+      input.select();
+
+      // Повністю блокуємо drag-and-drop
+      let parent = input;
+      while (parent = parent.parentElement) {
+        if (parent.draggable) {
+          parent._wasDraggable = true;
+          parent.draggable = false;
+        }
+      }
+
+      input.addEventListener('dragstart', e => e.preventDefault());
+      input.addEventListener('mousedown', e => e.stopPropagation());
+      input.addEventListener('click', e => e.stopPropagation());
     });
   });
 }
