@@ -274,6 +274,7 @@ function renderNotesUI(container) {
         </div>
         <div class="notes-sidebar-actions">
           <div class="notes-gist-settings-btn" id="notes-gist-settings-btn" title="Налаштування синхронізації">⚙</div>
+          <span class="notes-sync-label" id="notes-sync-label"></span>
           <div class="notes-group-add" id="notes-group-add" title="Нова група">+</div>
         </div>
         <div class="notes-sidebar-resizer" id="notes-sidebar-resizer"></div>

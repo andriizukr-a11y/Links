@@ -145,6 +145,8 @@ class GistStorage {
         mainGroup: getMainGroupName(),
         collapsedGroups: getCollapsedGroups(),
         activeTopic: notesActiveTopic,
+        sidebarWidth: parseInt(localStorage.getItem('notes_sidebar_width')) || 240,
+        layoutWidth: parseInt(localStorage.getItem('notes_layout_width')) || 900,
         lastSync: new Date().toISOString()
       };
 
@@ -195,6 +197,21 @@ class GistStorage {
       if (data.activeTopic) {
         notesActiveTopic = data.activeTopic;
         localStorage.setItem(NOTES_ACTIVE_KEY, data.activeTopic);
+      }
+      
+      console.log('Gist data keys:', Object.keys(data));
+      console.log('Gist sidebarWidth:', data.sidebarWidth);
+      console.log('Gist layoutWidth:', data.layoutWidth);
+      
+      if (data.sidebarWidth !== undefined && data.sidebarWidth !== null) {
+        const clampedSidebar = Math.max(180, Math.min(400, data.sidebarWidth));
+        localStorage.setItem('notes_sidebar_width', String(clampedSidebar));
+        console.log('Set sidebar width to:', clampedSidebar);
+      }
+      if (data.layoutWidth !== undefined && data.layoutWidth !== null) {
+        const clampedLayout = Math.max(600, Math.min(window.innerWidth * 0.95, data.layoutWidth));
+        localStorage.setItem('notes_layout_width', String(clampedLayout));
+        console.log('Set layout width to:', clampedLayout);
       }
 
       this.lastSyncTime = new Date();

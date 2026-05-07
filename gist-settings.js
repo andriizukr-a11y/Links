@@ -222,15 +222,29 @@ function createGistSettingsModal() {
       tempStorage.config.gistId = gistId;
       tempStorage.config.enabled = true;
       
-      await tempStorage.loadFromGistAndApply();
-      showStatus('✓ Дані успішно завантажено!', 'success');
-      
-      setTimeout(() => {
-        if (typeof renderNotesUI === 'function') {
-          const container = document.getElementById('output-notes');
-          if (container) renderNotesUI(container);
-        }
-      }, 500);
+      try {
+        const data = await tempStorage.loadFromGistAndApply();
+        console.log('Gist data loaded:', data);
+        console.log('Sidebar width from localStorage:', localStorage.getItem('notes_sidebar_width'));
+        console.log('Layout width from localStorage:', localStorage.getItem('notes_layout_width'));
+        showStatus('✓ Дані успішно завантажено!', 'success');
+        
+        setTimeout(() => {
+          if (typeof renderNotesUI === 'function') {
+            const container = document.getElementById('output-notes');
+            if (container) {
+              console.log('Calling renderNotesUI with container:', container);
+              renderNotesUI(container);
+            }
+          }
+        }, 500);
+      } catch (error) {
+        console.error('Gist load error:', error);
+        showStatus(`✗ Помилка: ${error.message}`, 'error');
+      } finally {
+        loadBtn.disabled = false;
+        loadBtn.textContent = 'Завантажити з Gist';
+      }
     } catch (error) {
       showStatus(`✗ Помилка: ${error.message}`, 'error');
     } finally {
@@ -445,15 +459,24 @@ function addGistSettingsButton() {
   window.addEventListener('gist-sync-status', updateButtonStatus);
   window.addEventListener('file-sync-status', updateButtonStatus);
 
+  const label = document.getElementById('notes-sync-label');
+
   // Show status based on current sync config
   if (gistStorage.config.enabled && !gistStorage.config.token) {
     btn.classList.add('gist-btn-error');
     btn.title = 'Помилка: Gist увімкнено, але токен не вказано';
+    if (label) { label.textContent = 'Gist — немає токена'; label.className = 'notes-sync-label sync-label-error'; }
   } else if (fileStorage.config.enabled && !fileStorage.fileHandle) {
     btn.classList.add('gist-btn-error');
     btn.title = 'Помилка: синхронізацію з файлом увімкнено, але файл не вибрано';
+    if (label) { label.textContent = 'Файл не вибрано'; label.className = 'notes-sync-label sync-label-error'; }
   } else if (!gistStorage.config.enabled && !fileStorage.config.enabled) {
     btn.classList.add('gist-btn-local');
     btn.title = 'Дані зберігаються тільки в браузері';
+    if (label) { label.textContent = 'Лише браузер'; label.className = 'notes-sync-label sync-label-local'; }
+  } else if (gistStorage.config.enabled && gistStorage.config.token) {
+    if (label) { label.textContent = 'Gist'; label.className = 'notes-sync-label sync-label-gist'; }
+  } else if (fileStorage.config.enabled && fileStorage.fileHandle) {
+    if (label) { label.textContent = 'Файл'; label.className = 'notes-sync-label sync-label-file'; }
   }
 }

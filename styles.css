@@ -521,11 +521,51 @@ body {
 .notes-gist-settings-btn.gist-btn-error {
   opacity: 1 !important;
   color: var(--danger);
+  background: rgba(224, 85, 85, 0.15);
+  border-radius: 6px;
+  animation: gist-pulse 2s ease-in-out infinite;
 }
 
 .notes-gist-settings-btn.gist-btn-local {
   opacity: 1 !important;
   color: var(--warning);
+  background: rgba(240, 160, 64, 0.12);
+  border-radius: 6px;
+}
+
+.notes-sync-label {
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1.4;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.notes-sidebar-actions:hover .notes-sync-label {
+  opacity: 1;
+}
+
+.sync-label-error {
+  color: var(--danger);
+  background: rgba(224, 85, 85, 0.15);
+  opacity: 1 !important;
+}
+
+.sync-label-local {
+  color: var(--warning);
+  background: rgba(240, 160, 64, 0.12);
+  opacity: 1 !important;
+}
+
+.sync-label-gist {
+  color: var(--success);
+}
+
+.sync-label-file {
+  color: var(--accent);
 }
 
 .notes-group-add {
