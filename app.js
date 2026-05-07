@@ -76,9 +76,6 @@ function createTabs() {
     };
   });
 
-  if (tabsOrder.length > 0) {
-    document.title = `${tabsOrder[0]} – ${CONFIG.ui.titleSuffix}`;
-  }
 
   openTabFromHash();
 }
@@ -95,11 +92,6 @@ function switchTab(tabId) {
     searchEl.value = '';
     filterBookmarks(tabId, '');
   }
-
-  // Оновлюємо title сторінки
-  const tabData = bookmarksData[tabId];
-  const tabName = tabData?.name || 'Посилання';
-  document.title = `${tabName} – ${CONFIG.ui.titleSuffix}`;
 
   // Зберігаємо останній відкритий таб
   localStorage.setItem('lastTab', tabId);

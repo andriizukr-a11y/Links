@@ -68,7 +68,7 @@ async function checkAccess() {
 }
 
 function injectHead() {
-  document.title = CONFIG.ui.titleSuffix;
+  document.title = 'Tab Links';
 
   const favicon = document.createElement('link');
   favicon.rel = 'icon';
