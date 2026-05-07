@@ -117,6 +117,7 @@ function loadScript(src) {
 
   await loadScript('bookmarks.js');
   await loadScript('gist-storage.js');
+  await loadScript('file-storage.js');
   await loadScript('notes.js');
   await loadScript('gist-settings.js');
   await loadScript('tasks.js');

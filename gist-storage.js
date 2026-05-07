@@ -177,9 +177,11 @@ class GistStorage {
 
     try {
       const data = await this.loadFromGist();
+      console.log('Gist data loaded:', Object.keys(data), 'topics:', data.topics, 'groups:', data.groups);
 
       // Apply loaded data
-      if (data.notes) saveNotesData(data.notes);
+      if (data.notes) { saveNotesData(data.notes); console.log('Notes saved, count:', Object.keys(data.notes).length); }
+      else console.log('No notes in data');
       if (data.topics) saveNotesTopics(data.topics);
       if (data.timestamps) saveNotesTimestamps(data.timestamps);
       if (data.groups) saveNotesGroups(data.groups);
