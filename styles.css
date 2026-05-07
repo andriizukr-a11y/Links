@@ -534,38 +534,65 @@ body {
 }
 
 .notes-sync-label {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 9px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   white-space: nowrap;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1.4;
+  padding: 3px 6px;
+  border-radius: 3px;
+  line-height: 1;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  max-width: 45px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notes-sidebar-actions:hover .notes-sync-label {
-  opacity: 1;
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.notes-gist-settings-btn:hover ~ .notes-sync-label {
+  opacity: 1 !important;
+  transform: translateY(-1px);
 }
 
 .sync-label-error {
-  color: var(--danger);
-  background: rgba(224, 85, 85, 0.15);
+  color: #fff;
+  background: var(--danger);
   opacity: 1 !important;
+  box-shadow: 0 2px 8px rgba(224, 85, 85, 0.3);
 }
 
 .sync-label-local {
-  color: var(--warning);
-  background: rgba(240, 160, 64, 0.12);
+  color: #fff;
+  background: var(--warning);
   opacity: 1 !important;
+  box-shadow: 0 2px 8px rgba(240, 160, 64, 0.3);
 }
 
 .sync-label-gist {
-  color: var(--success);
+  color: #fff;
+  background: var(--success);
+  opacity: 1 !important;
+  box-shadow: 0 2px 8px rgba(74, 192, 106, 0.3);
 }
 
 .sync-label-file {
-  color: var(--accent);
+  color: #fff;
+  background: var(--accent);
+  opacity: 1 !important;
+  box-shadow: 0 2px 8px rgba(91, 156, 245, 0.3);
+}
+
+.sync-label-idle {
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  opacity: 1 !important;
 }
 
 .notes-group-add {
