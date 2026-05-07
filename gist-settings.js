@@ -11,8 +11,12 @@ function createGistSettingsModal() {
       </div>
       <div class="notes-modal-body">
         <div class="gist-settings-section">
-          <label>Метод синхронізації:</label>
+          <label>Зберігати дані:</label>
           <div style="margin: 10px 0;">
+            <label class="gist-settings-label">
+              <input type="radio" name="sync-method" value="browser" ${!gistStorage.config.enabled && !fileStorage.config.enabled ? 'checked' : ''}>
+              Тільки в браузері (localStorage)
+            </label>
             <label class="gist-settings-label">
               <input type="radio" name="sync-method" value="gist" ${gistStorage.config.enabled ? 'checked' : ''}>
               GitHub Gist
@@ -25,13 +29,6 @@ function createGistSettingsModal() {
         </div>
 
         <div id="gist-section" style="display: ${gistStorage.config.enabled ? 'block' : 'none'};">
-          <div class="gist-settings-section">
-            <label class="gist-settings-label">
-              <input type="checkbox" id="gist-enabled" ${gistStorage.config.enabled ? 'checked' : ''}>
-              Увімкнути синхронізацію з GitHub Gist
-            </label>
-          </div>
-
         <div class="gist-settings-section">
           <label>GitHub Personal Access Token:</label>
           <input type="password" id="gist-token" class="gist-settings-input" 
@@ -63,13 +60,6 @@ function createGistSettingsModal() {
         </div>
 
         <div id="file-section" style="display: ${fileStorage.config.enabled ? 'block' : 'none'};">
-          <div class="gist-settings-section">
-            <label class="gist-settings-label">
-              <input type="checkbox" id="file-enabled" ${fileStorage.config.enabled ? 'checked' : ''}>
-              Увімкнути синхронізацію з локальним файлом
-            </label>
-          </div>
-
           <div class="gist-settings-section">
             <label>Назва файлу:</label>
             <input type="text" id="file-name" class="gist-settings-input" 
@@ -116,11 +106,9 @@ function createGistSettingsModal() {
   const fileSyncBtn = modal.querySelector('#file-sync-btn');
   const fileStatusEl = modal.querySelector('#file-status');
 
-  const enabledCheckbox = modal.querySelector('#gist-enabled');
   const tokenInput = modal.querySelector('#gist-token');
   const gistIdInput = modal.querySelector('#gist-id');
   
-  const fileEnabledCheckbox = modal.querySelector('#file-enabled');
   const fileNameInput = modal.querySelector('#file-name');
 
   function showStatus(message, type = 'info') {
@@ -148,9 +136,12 @@ function createGistSettingsModal() {
       if (e.target.value === 'gist') {
         gistSection.style.display = 'block';
         fileSection.style.display = 'none';
-      } else {
+      } else if (e.target.value === 'file') {
         gistSection.style.display = 'none';
         fileSection.style.display = 'block';
+      } else {
+        gistSection.style.display = 'none';
+        fileSection.style.display = 'none';
       }
     };
   });
@@ -336,9 +327,15 @@ function createGistSettingsModal() {
   saveBtn.onclick = () => {
     const syncMethod = modal.querySelector('input[name="sync-method"]:checked').value;
     
-    if (syncMethod === 'gist') {
+    if (syncMethod === 'browser') {
+      gistStorage.saveConfig({ enabled: false, token: gistStorage.config.token, gistId: gistStorage.config.gistId });
+      fileStorage.saveConfig({ enabled: false, fileName: fileStorage.config.fileName });
+      gistStorage.stopAutoSync();
+      fileStorage.stopAutoSync();
+      showToast('Дані зберігаються тільки в браузері');
+    } else if (syncMethod === 'gist') {
       const config = {
-        enabled: enabledCheckbox.checked,
+        enabled: true,
         token: tokenInput.value.trim(),
         gistId: gistIdInput.value.trim()
       };
@@ -346,33 +343,25 @@ function createGistSettingsModal() {
       gistStorage.saveConfig(config);
       fileStorage.saveConfig({ enabled: false, fileName: fileStorage.config.fileName });
 
-      if (config.enabled) {
-        gistStorage.startAutoSync();
-        fileStorage.stopAutoSync();
-        showToast('Синхронізація з Gist увімкнена');
-      } else {
-        gistStorage.stopAutoSync();
-        showToast('Синхронізація з Gist вимкнена');
-      }
+      gistStorage.startAutoSync();
+      fileStorage.stopAutoSync();
+      showToast('Синхронізація з Gist увімкнена');
     } else {
       const config = {
-        enabled: fileEnabledCheckbox.checked,
+        enabled: true,
         fileName: fileNameInput.value.trim() || 'tab-links-notes.json'
       };
 
       fileStorage.saveConfig(config);
       gistStorage.saveConfig({ enabled: false, token: gistStorage.config.token, gistId: gistStorage.config.gistId });
 
-      if (config.enabled && fileStorage.fileHandle) {
+      if (fileStorage.fileHandle) {
         fileStorage.startAutoSync();
         gistStorage.stopAutoSync();
         showToast('Синхронізація з файлом увімкнена');
-      } else if (config.enabled && !fileStorage.fileHandle) {
+      } else {
         showToast('Спочатку виберіть файл');
         return;
-      } else {
-        fileStorage.stopAutoSync();
-        showToast('Синхронізація з файлом вимкнена');
       }
     }
 
