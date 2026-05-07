@@ -8,14 +8,22 @@ function createTabs() {
   const tabsContainer = document.getElementById('tabs-container');
   const contentsContainer = document.getElementById('contents-container');
 
-  // Завантажуємо збережений порядок табів
+  // Завантажуємо збережений порядок табів, додаємо нові таби з конфігу
   let tabsOrder = JSON.parse(localStorage.getItem('tabsOrder')) || CONFIG.tabs;
+  CONFIG.tabs.forEach(t => { if (!tabsOrder.includes(t)) tabsOrder.push(t); });
 
   tabsOrder.forEach((tabName, index) => {
-    // Генеруємо ім'я файлу з назви таба
-    const originalIndex = CONFIG.tabs.indexOf(tabName);
-    const fileName = `tab${originalIndex + 1}.xbel`;
-    const id = fileId(fileName);
+    const isSpecial = CONFIG.specialTabs && CONFIG.specialTabs[tabName];
+    let id, fileName;
+
+    if (isSpecial) {
+      id = CONFIG.specialTabs[tabName];
+      fileName = null;
+    } else {
+      const originalIndex = CONFIG.tabs.indexOf(tabName);
+      fileName = `tab${originalIndex + 1}.xbel`;
+      id = fileId(fileName);
+    }
 
     // Створюємо кнопку таба
     const tabBtn = document.createElement('button');
@@ -25,7 +33,7 @@ function createTabs() {
     
     // Формуємо контент кнопки
     let tabContent = tabName;
-    if (CONFIG.ui.showCounts) {
+    if (CONFIG.ui.showCounts && !isSpecial) {
       tabContent += ` <span class="tab-count" id="count-${id}">0</span>`;
     }
     
@@ -46,19 +54,25 @@ function createTabs() {
     const content = document.createElement('div');
     content.id = `content-${id}`;
     content.className = 'tab-content' + (index === 0 ? ' active' : '');
-    content.innerHTML = `
-      <div class="search-wrapper">
-        <input class="search-input" id="search-${id}" type="search" placeholder="Пошук..." autocomplete="off">
-        <span class="search-count" id="search-count-${id}"></span>
-      </div>
-      <div id="output-${id}"></div>
-    `;
+
+    if (isSpecial) {
+      content.innerHTML = `<div id="output-${id}"></div>`;
+    } else {
+      content.innerHTML = `
+        <div class="search-wrapper">
+          <input class="search-input" id="search-${id}" type="search" placeholder="Пошук..." autocomplete="off">
+          <span class="search-count" id="search-count-${id}"></span>
+        </div>
+        <div id="output-${id}"></div>
+      `;
+    }
     contentsContainer.appendChild(content);
 
     // Зберігаємо дані таба
     bookmarksData[id] = {
-      path: `${CONFIG.dir}/${fileName}`,
-      name: tabName
+      path: fileName ? `${CONFIG.dir}/${fileName}` : null,
+      name: tabName,
+      special: isSpecial ? CONFIG.specialTabs[tabName] : null
     };
   });
 
@@ -122,6 +136,17 @@ async function loadDirectory() {
   createTabs();
 
   const loadPromises = CONFIG.tabs.map(async (tabName, index) => {
+    const isSpecial = CONFIG.specialTabs && CONFIG.specialTabs[tabName];
+    if (isSpecial) {
+      const id = CONFIG.specialTabs[tabName];
+      if (id === 'notes' && typeof initNotes === 'function') {
+        initNotes();
+      }
+      if (id === 'tasks' && typeof initTasks === 'function') {
+        initTasks();
+      }
+      return;
+    }
     const fileName = `tab${index + 1}.xbel`;
     const id = fileId(fileName);
     try {

@@ -3,6 +3,8 @@
 /* ============ НАЛАШТУВАННЯ ============ */
 
 const CONFIG = {
+  allowedIP: '176.37.220.254',
+
   dir: 'bookmarks',
   
   ui: {
@@ -25,8 +27,15 @@ const CONFIG = {
   tabs: [
     'Спорт',
     'Проектор',
-    'Робота'
-  ]
+    'Робота',
+    'Нотатки',
+    'Завдання'
+  ],
+
+  specialTabs: {
+    'Нотатки': 'notes',
+    'Завдання': 'tasks'
+  }
 };
 
 /* ============ КІНЕЦЬ НАЛАШТУВАНЬ ============ */
@@ -34,5 +43,23 @@ const CONFIG = {
 // Глобальні змінні
 const bookmarksData = {};
 
+async function checkIP() {
+  try {
+    const res = await fetch('https://api64.ipify.org?format=json');
+    const data = await res.json();
+    return data.ip === CONFIG.allowedIP;
+  } catch {
+    return false;
+  }
+}
+
 // Ініціалізація після завантаження всіх модулів
-document.addEventListener('DOMContentLoaded', loadDirectory);
+document.addEventListener('DOMContentLoaded', async () => {
+  const allowed = await checkIP();
+  if (!allowed) {
+    document.getElementById('preloader').classList.add('hidden');
+    document.body.innerHTML = '';
+    return;
+  }
+  loadDirectory();
+});
