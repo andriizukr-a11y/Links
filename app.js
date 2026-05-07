@@ -234,7 +234,7 @@ window.addEventListener('scroll', () => {
 
 document.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
-  const isInput = tag === 'INPUT' || tag === 'TEXTAREA';
+  const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable;
 
   if ((e.key === '/' || e.key === 'f') && !isInput && !e.ctrlKey && !e.metaKey) {
     const activTab = document.querySelector('.tab.active');
