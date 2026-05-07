@@ -108,7 +108,17 @@ class GistStorage {
       throw new Error('Notes data file not found in gist');
     }
 
-    return JSON.parse(file.content);
+    let content = file.content;
+
+    if (file.truncated && file.raw_url) {
+      const rawResponse = await fetch(file.raw_url, {
+        headers: { 'Authorization': `token ${this.config.token}` }
+      });
+      if (!rawResponse.ok) throw new Error('Failed to load raw gist content');
+      content = await rawResponse.text();
+    }
+
+    return JSON.parse(content);
   }
 
   async syncToGist() {

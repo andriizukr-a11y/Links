@@ -923,11 +923,12 @@ function serializeChecklists(html) {
 
 function deserializeChecklists(html) {
   const normalized = html.replace(/<br\s*\/?>/gi, '\n');
-  return normalized.replace(/(^|\n)-\s*\[(\s*)\]\s*(.*)$/gmi, (_, newline, check, text) => {
+  const result = normalized.replace(/(^|\n)-\s*\[(\s*)\]\s*(.*)$/gmi, (_, newline, check, text) => {
     const checked = check.toLowerCase() === 'x';
     const escapedText = text.replace(/\n/g, '<br>');
     return `${newline}<div class="notes-checklist-item"><span class="notes-checklist${checked ? ' checked' : ''}" contenteditable="false"></span><span class="notes-checklist-text">${escapedText}</span></div>`;
   });
+  return result.replace(/\n/g, '<br>');
 }
 
 function getChecklistItem(el) {
