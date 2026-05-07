@@ -12,6 +12,7 @@ const SAVE_DELAY = 500;
 
 let notesActiveTopic = null;
 let notesSaveTimer = null;
+let notesStatusTimers = [];
 let notesSyncError = null;
 
 function getNotesData() {
@@ -265,6 +266,9 @@ function getNotesWarningHtml() {
 }
 
 function renderNotesUI(container) {
+  notesStatusTimers.forEach(clearTimeout);
+  notesStatusTimers = [];
+
   const groups = getNotesGroups();
   const topics = getNotesTopics();
   const topicGroups = getTopicGroups();
@@ -605,19 +609,34 @@ function bindNotesEvents(container) {
   editor.addEventListener('input', () => {
     updatePlaceholder();
     clearTimeout(notesSaveTimer);
+    notesStatusTimers.forEach(clearTimeout);
+    notesStatusTimers = [];
+
     statusEl.textContent = 'Збереження...';
     statusEl.className = 'notes-status saving';
+    statusEl.style.opacity = '1';
+
     notesSaveTimer = setTimeout(() => {
       wrapImages(editor);
       saveCurrentNote(editor.innerHTML);
-      statusEl.textContent = 'Збережено';
-      statusEl.className = 'notes-status saved';
-      setTimeout(() => {
-        if (statusEl.textContent === 'Збережено') {
-          statusEl.textContent = '';
-          statusEl.className = 'notes-status';
-        }
-      }, 1500);
+
+      // Fade out "Збереження...", then fade in "Збережено"
+      statusEl.style.opacity = '0';
+      notesStatusTimers.push(setTimeout(() => {
+        statusEl.textContent = 'Збережено';
+        statusEl.className = 'notes-status saved';
+        statusEl.style.opacity = '1';
+
+        // After delay, fade out "Збережено", then fade in time
+        notesStatusTimers.push(setTimeout(() => {
+          statusEl.style.opacity = '0';
+          notesStatusTimers.push(setTimeout(() => {
+            statusEl.textContent = getEditTime();
+            statusEl.className = 'notes-status';
+            statusEl.style.opacity = '1';
+          }, 300));
+        }, 1500));
+      }, 300));
     }, SAVE_DELAY);
   });
 
@@ -840,8 +859,9 @@ function bindNotesEvents(container) {
       }
     });
     group.addEventListener('drop', e => {
-      e.stopPropagation();
       if (draggedTopic) {
+        if (e.target.closest('.notes-topic-item')) return; // let topic item handler process it
+        e.stopPropagation();
         const newGroup = group.dataset.group;
         const topicsContainer = group.querySelector('.notes-group-topics');
         topicsContainer.appendChild(draggedTopic);
@@ -852,6 +872,7 @@ function bindNotesEvents(container) {
         saveNotesTopics(allTopics);
         return;
       }
+      e.stopPropagation();
       if (!draggedGroup || draggedGroup === group) return;
       const list = container.querySelector('#notes-sidebar-list');
       const items = [...list.querySelectorAll('.notes-group')];
@@ -891,14 +912,19 @@ function bindNotesEvents(container) {
     item.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-    });
-
-    item.addEventListener('dragenter', e => {
-      if (item !== draggedTopic) item.classList.add('drag-over');
+      if (item === draggedTopic) return;
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      item.classList.remove('drop-before', 'drop-after');
+      if (e.clientY < midY) {
+        item.classList.add('drop-before');
+      } else {
+        item.classList.add('drop-after');
+      }
     });
 
     item.addEventListener('dragleave', () => {
-      item.classList.remove('drag-over');
+      item.classList.remove('drop-before', 'drop-after');
     });
 
     item.addEventListener('drop', e => {
@@ -906,14 +932,11 @@ function bindNotesEvents(container) {
       if (draggedTopic === item) return;
       const targetGroup = item.closest('.notes-group');
       const topicsContainer = targetGroup.querySelector('.notes-group-topics');
-      const items = [...topicsContainer.querySelectorAll('.notes-topic-item')];
-      const di = items.indexOf(draggedTopic);
-      const ti = items.indexOf(item);
-      if (di === -1) {
+      const insertBefore = item.classList.contains('drop-before');
+      if (insertBefore) {
         topicsContainer.insertBefore(draggedTopic, item);
       } else {
-        if (di < ti) topicsContainer.insertBefore(draggedTopic, item.nextSibling);
-        else topicsContainer.insertBefore(draggedTopic, item);
+        topicsContainer.insertBefore(draggedTopic, item.nextSibling);
       }
       const newGroup = targetGroup.dataset.group;
       const tg = getTopicGroups();
@@ -925,7 +948,7 @@ function bindNotesEvents(container) {
 
     item.addEventListener('dragend', () => {
       item.classList.remove('dragging');
-      container.querySelectorAll('.notes-topic-item').forEach(el => el.classList.remove('drag-over'));
+      container.querySelectorAll('.notes-topic-item').forEach(el => el.classList.remove('drop-before', 'drop-after'));
       container.querySelectorAll('.notes-group').forEach(el => el.classList.remove('topic-drag-over'));
       draggedTopic = null;
     });
@@ -995,8 +1018,6 @@ function saveCurrentNote(content) {
   const ts = getNotesTimestamps();
   ts[notesActiveTopic] = Date.now();
   saveNotesTimestamps(ts);
-  const statusEl = document.getElementById('notes-status');
-  if (statusEl) statusEl.textContent = getEditTime();
 }
 
 function saveCurrentNoteSilent() {
