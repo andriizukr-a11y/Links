@@ -271,12 +271,25 @@ function createGistSettingsModal() {
   fileLoadBtn.onclick = async () => {
     hideFileStatus();
 
+    // Якщо файл не вибрано, відкриваємо діалог вибору файлу
     if (!fileStorage.fileHandle) {
-      showFileStatus('Спочатку виберіть файл', 'error');
-      return;
+      fileLoadBtn.disabled = true;
+      fileLoadBtn.textContent = 'Вибір файлу...';
+
+      try {
+        await fileStorage.requestFileAccess();
+        fileNameInput.value = fileStorage.fileHandle.name;
+      } catch (error) {
+        showFileStatus(`✗ Помилка вибору файлу: ${error.message}`, 'error');
+        fileLoadBtn.disabled = false;
+        fileLoadBtn.textContent = 'Завантажити з файлу';
+        return;
+      }
     }
 
     if (!confirm('Це замінить всі поточні нотатки даними з файлу. Продовжити?')) {
+      fileLoadBtn.disabled = false;
+      fileLoadBtn.textContent = 'Завантажити з файлу';
       return;
     }
 
