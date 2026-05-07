@@ -401,15 +401,7 @@ function bindNotesEvents(container) {
     const commit = () => {
       let name = input.value.trim();
       input.remove();
-      if (!name) {
-        name = 'Нова тема';
-        let suffix = 1;
-        const existingTopics = getNotesTopics();
-        while (existingTopics.includes(name)) {
-          name = `Нова тема ${suffix}`;
-          suffix++;
-        }
-      }
+      if (!name) return;
       const topics = getNotesTopics();
       if (topics.includes(name)) { showToast('Така тема вже існує'); return; }
       topics.push(name);
@@ -494,7 +486,7 @@ function bindNotesEvents(container) {
   });
 
   container.querySelectorAll('.notes-group-topics').forEach(topicsContainer => {
-    topicsContainer.addEventListener('click', e => {
+    topicsContainer.addEventListener('dblclick', e => {
       if (e.target !== topicsContainer) return;
       startAddTopic(topicsContainer.closest('.notes-group'));
     });
