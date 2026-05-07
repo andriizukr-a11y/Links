@@ -307,7 +307,7 @@
   width: 100%;
   padding: 5px 8px;
   background: var(--bg-hover);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text-primary);
   font-size: 12px;
@@ -703,7 +703,7 @@
   width: 100%;
   padding: 5px 8px;
   background: var(--bg-hover);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text-primary);
   font-size: 13px;

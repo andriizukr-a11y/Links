@@ -349,7 +349,11 @@ function bindNotesEvents(container) {
 
       nameEl.style.display = 'none';
       nameEl.parentElement.appendChild(input);
-      
+
+      // Фокусуємося на полі введення назви групи
+      input.focus();
+      input.select();
+
       // Повністю блокуємо drag-and-drop
       let parent = input;
       while (parent = parent.parentElement) {
@@ -384,9 +388,6 @@ function bindNotesEvents(container) {
         if (e.key === 'Escape') { cleanup(); groupEl.draggable = true; input.remove(); nameEl.style.display = ''; }
       });
       input.addEventListener('blur', commit);
-      
-      input.focus();
-      input.select();
     });
   });
 
