@@ -136,7 +136,10 @@ function createGistSettingsModal() {
       showStatus('✓ Дані успішно завантажено!', 'success');
       
       setTimeout(() => {
-        if (typeof renderNotesUI === 'function') renderNotesUI();
+        if (typeof renderNotesUI === 'function') {
+          const container = document.getElementById('output-notes');
+          if (container) renderNotesUI(container);
+        }
       }, 500);
     } catch (error) {
       showStatus(`✗ Помилка: ${error.message}`, 'error');
