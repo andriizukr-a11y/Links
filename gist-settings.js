@@ -271,13 +271,13 @@ function createGistSettingsModal() {
   fileLoadBtn.onclick = async () => {
     hideFileStatus();
 
-    // Якщо файл не вибрано, відкриваємо діалог вибору файлу
+    // Якщо файл не вибрано, відкриваємо діалог відкриття файлу
     if (!fileStorage.fileHandle) {
       fileLoadBtn.disabled = true;
       fileLoadBtn.textContent = 'Вибір файлу...';
 
       try {
-        await fileStorage.requestFileAccess();
+        await fileStorage.openFileForReading();
         fileNameInput.value = fileStorage.fileHandle.name;
       } catch (error) {
         showFileStatus(`✗ Помилка вибору файлу: ${error.message}`, 'error');

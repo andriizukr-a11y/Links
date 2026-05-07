@@ -55,6 +55,28 @@ class FileStorage {
     }
   }
 
+  async openFileForReading() {
+    try {
+      const fileHandle = await window.showOpenFilePicker({
+        types: [
+          {
+            description: 'JSON Files',
+            accept: { 'application/json': ['.json'] }
+          }
+        ],
+        multiple: false
+      });
+      
+      this.fileHandle = fileHandle[0];
+      return fileHandle[0];
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Вибір файлу скасовано');
+      }
+      throw error;
+    }
+  }
+
   async saveToFile(data) {
     if (!this.fileHandle) {
       throw new Error('Доступ до файлу не надано');
