@@ -12,6 +12,7 @@ const SAVE_DELAY = 500;
 
 let notesActiveTopic = null;
 let notesSaveTimer = null;
+let notesSyncError = null;
 
 function getNotesData() {
   try { return JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY)) || {}; }
@@ -231,6 +232,36 @@ function initNotes() {
       }
     }, 100);
   }
+
+  // Listen for sync errors to show in warning banner
+  const handleSyncStatus = (e) => {
+    const { status, message } = e.detail;
+    if (status === 'error') {
+      notesSyncError = message;
+      setTimeout(() => renderNotesUI(output), 0);
+    } else if (status === 'success') {
+      notesSyncError = null;
+      setTimeout(() => renderNotesUI(output), 0);
+    }
+  };
+  window.addEventListener('gist-sync-status', handleSyncStatus);
+  window.addEventListener('file-sync-status', handleSyncStatus);
+}
+
+function getNotesWarningHtml() {
+  if (notesSyncError) {
+    return `<div class="notes-local-warning notes-sync-error">⚠ Помилка синхронізації: ${escapeHtml(notesSyncError)}. <a href="#" id="notes-setup-sync">Налаштувати</a></div>`;
+  }
+  if (gistStorage.config.enabled && !gistStorage.config.token) {
+    return '<div class="notes-local-warning notes-sync-error">⚠ Помилка синхронізації Gist: не вказано токен. <a href="#" id="notes-setup-sync">Налаштувати</a></div>';
+  }
+  if (fileStorage.config.enabled && !fileStorage.fileHandle) {
+    return '<div class="notes-local-warning notes-sync-error">⚠ Помилка синхронізації файлу: файл не вибрано. <a href="#" id="notes-setup-sync">Налаштувати</a></div>';
+  }
+  if (!gistStorage.isEnabled() && !fileStorage.isEnabled()) {
+    return '<div class="notes-local-warning">⚠ Нотатки зберігаються лише в браузері. <a href="#" id="notes-setup-sync">Налаштувати синхронізацію</a></div>';
+  }
+  return '';
 }
 
 function renderNotesUI(container) {
@@ -273,13 +304,17 @@ function renderNotesUI(container) {
           ${groupsHtml}
         </div>
         <div class="notes-sidebar-actions">
-          <div class="notes-gist-settings-btn" id="notes-gist-settings-btn" title="Налаштування синхронізації">⚙</div>
-          <span class="notes-sync-label" id="notes-sync-label"></span>
-          <div class="notes-group-add" id="notes-group-add" title="Нова група">+</div>
+          <div class="notes-gist-settings-btn" id="notes-gist-settings-btn" title="Налаштування синхронізації">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <div class="notes-group-add" id="notes-group-add" title="Нова група">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
         </div>
         <div class="notes-sidebar-resizer" id="notes-sidebar-resizer"></div>
       </div>
       <div class="notes-editor">
+        ${getNotesWarningHtml()}
         <div class="notes-ctx-toolbar" id="notes-ctx-toolbar">
           <button class="notes-tb-btn" data-cmd="bold" title="Жирний (Ctrl+B)"><b>B</b></button>
           <button class="notes-tb-btn" data-cmd="italic" title="Курсив (Ctrl+I)"><i>I</i></button>
@@ -312,6 +347,17 @@ function bindNotesEvents(container) {
   const resizer = container.querySelector('#notes-sidebar-resizer');
   const layout = container.querySelector('.notes-layout');
   const layoutResizer = container.querySelector('#notes-layout-resizer');
+
+  // Sync setup link in local-only warning
+  const setupSyncLink = container.querySelector('#notes-setup-sync');
+  if (setupSyncLink) {
+    setupSyncLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof createGistSettingsModal === 'function') {
+        createGistSettingsModal();
+      }
+    });
+  }
 
   // Sidebar resizer
   let isResizingSidebar = false;
@@ -718,7 +764,7 @@ function bindNotesEvents(container) {
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'notes-group-add-input';
-    input.placeholder = 'Назва групи';
+    input.placeholder = 'Нова група';
 
     const commit = () => {
       const name = input.value.trim();
