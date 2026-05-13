@@ -111,19 +111,14 @@ class GistStorage {
       throw new Error('Notes data file not found in gist');
     }
 
-    console.log('Gist file truncated:', file.truncated, 'content length:', file.size, 'raw_url:', file.raw_url);
-
     let content = file.content;
 
     if (file.truncated) {
-      console.log('Fetching full content via raw_url:', file.raw_url);
       const rawResponse = await fetch(file.raw_url);
       if (!rawResponse.ok) throw new Error('Failed to load full gist content');
       content = await rawResponse.text();
-      console.log('Raw content length:', content.length);
     }
 
-    console.log('Parsing JSON, content preview:', content.substring(0, 200));
     return JSON.parse(content);
   }
 
@@ -184,7 +179,6 @@ class GistStorage {
 
     try {
       const data = await this.loadFromGist();
-      console.log('Gist data loaded:', Object.keys(data), 'topics:', data.topics, 'groups:', data.groups);
 
       // Apply loaded data directly to localStorage (bypass markPendingChanges)
       if (data.notes) localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(data.notes));
@@ -198,20 +192,14 @@ class GistStorage {
         notesActiveTopic = data.activeTopic;
         localStorage.setItem(NOTES_ACTIVE_KEY, data.activeTopic);
       }
-      
-      console.log('Gist data keys:', Object.keys(data));
-      console.log('Gist sidebarWidth:', data.sidebarWidth);
-      console.log('Gist layoutWidth:', data.layoutWidth);
-      
+
       if (data.sidebarWidth !== undefined && data.sidebarWidth !== null) {
         const clampedSidebar = Math.max(180, Math.min(400, data.sidebarWidth));
         localStorage.setItem('notes_sidebar_width', String(clampedSidebar));
-        console.log('Set sidebar width to:', clampedSidebar);
       }
       if (data.layoutWidth !== undefined && data.layoutWidth !== null) {
         const clampedLayout = Math.max(600, Math.min(window.innerWidth * 0.95, data.layoutWidth));
         localStorage.setItem('notes_layout_width', String(clampedLayout));
-        console.log('Set layout width to:', clampedLayout);
       }
 
       this.lastSyncTime = new Date();

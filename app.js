@@ -80,7 +80,7 @@ function createTabs() {
   openTabFromHash();
 }
 
-function switchTab(tabId) {
+async function switchTab(tabId) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
@@ -97,6 +97,11 @@ function switchTab(tabId) {
   localStorage.setItem('lastTab', tabId);
 
   window.location.hash = tabId;
+
+  // Lazy-load модуля нотаток при першому відкритті відповідної вкладки.
+  if ((tabId === 'notes' || tabId === 'quick-notes') && typeof ensureNotesLoaded === 'function') {
+    await ensureNotesLoaded();
+  }
 
   if (tabId === 'notes') {
     const topics = getNotesTopics();
@@ -166,12 +171,7 @@ async function loadDirectory() {
     const isSpecial = CONFIG.specialTabs && CONFIG.specialTabs[tabName];
     if (isSpecial) {
       const id = CONFIG.specialTabs[tabName];
-      if (id === 'notes' && typeof initNotes === 'function') {
-        initNotes();
-      }
-      if (id === 'quick-notes' && typeof initQuickNotes === 'function') {
-        initQuickNotes();
-      }
+      // notes/quick-notes ініціалізуються lazy при першому переході (див. switchTab).
       if (id === 'tasks' && typeof initTasks === 'function') {
         initTasks();
       }

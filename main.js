@@ -93,6 +93,43 @@ function loadScriptsInOrder(srcs) {
   });
 }
 
+// Lazy-завантаження модуля нотаток (CSS + JS). Викликається з switchTab при першому
+// відкритті вкладок "Нотатки" / "Швидка нотатка".
+let _notesModulePromise = null;
+function ensureNotesLoaded() {
+  if (_notesModulePromise) return _notesModulePromise;
+  _notesModulePromise = (async () => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'notes/styles.css';
+    document.head.appendChild(link);
+
+    await loadScriptsInOrder([
+      'notes/gist-storage.js',
+      'notes/file-storage.js',
+      'notes/storage.js',
+      'notes/utils.js',
+      'notes/checklists.js',
+      'notes/ui.js',
+      'notes/events.js',
+      'notes/notes.js',
+      'notes/gist-settings.js',
+      'notes/quick-notes.js'
+    ]);
+
+    if (typeof initNotes === 'function') initNotes();
+    if (typeof initQuickNotes === 'function') initQuickNotes();
+  })();
+  return _notesModulePromise;
+}
+
+// Реєстрація Service Worker (миттєвий повторний візит + офлайн).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
 (async () => {
   const allowed = await checkAccess();
   if (!allowed) {
@@ -102,18 +139,9 @@ function loadScriptsInOrder(srcs) {
 
   injectBody();
 
+  // Тільки core: bookmarks + tasks + app. Нотатки — lazy при першому відкритті.
   await loadScriptsInOrder([
     'bookmarks.js',
-    'notes/gist-storage.js',
-    'notes/file-storage.js',
-    'notes/storage.js',
-    'notes/utils.js',
-    'notes/checklists.js',
-    'notes/ui.js',
-    'notes/events.js',
-    'notes/notes.js',
-    'notes/gist-settings.js',
-    'notes/quick-notes.js',
     'tasks.js',
     'app.js'
   ]);

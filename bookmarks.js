@@ -54,11 +54,10 @@ function displayBookmarks(tabId, bookmarks) {
     let iconHtml = '';
     if (domain) {
       const customIconKey = Object.keys(CONFIG.customIcons || {}).find(key => urlWithPath.startsWith(key));
-      if (customIconKey) {
-        iconHtml = `<img class="bookmark-icon" src="${CONFIG.customIcons[customIconKey]}" data-domain="${domain}">`;
-      } else {
-        iconHtml = `<img class="bookmark-icon" src="data/favicons/default.png" data-src="https://${domain}/favicon.ico" data-domain="${domain}">`;
-      }
+      const iconSrc = customIconKey
+        ? CONFIG.customIcons[customIconKey]
+        : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`;
+      iconHtml = `<img class="bookmark-icon" src="${iconSrc}" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-domain="${domain}" onerror="this.onerror=null;this.src='data/favicons/default.png';">`;
     } else {
       iconHtml = `<span style="margin-right: 12px;">🔗</span>`;
     }
@@ -77,8 +76,8 @@ function displayBookmarks(tabId, bookmarks) {
 
   html += '</div>';
   output.innerHTML = html;
-  loadFavicons(output);
-  setupTooltips(output);
+  // setupTooltips робить forced reflow (scrollWidth/clientWidth) — відкладаємо після першого пайнту.
+  requestAnimationFrame(() => requestAnimationFrame(() => setupTooltips(output)));
 
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
@@ -102,44 +101,15 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-const FAVICON_CACHE_PREFIX = 'fav_';
-const FAVICON_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
-
-function getFaviconCache(domain) {
+// Очищаємо старий кеш фавіконок у localStorage (перехід на Google s2 + кеш браузера).
+(function purgeOldFaviconCache() {
   try {
-    const raw = localStorage.getItem(FAVICON_CACHE_PREFIX + domain);
-    if (!raw) return null;
-    const { src, ts } = JSON.parse(raw);
-    if (Date.now() - ts > FAVICON_CACHE_TTL) { localStorage.removeItem(FAVICON_CACHE_PREFIX + domain); return null; }
-    return src;
-  } catch { return null; }
-}
-
-function setFaviconCache(domain, src) {
-  try { localStorage.setItem(FAVICON_CACHE_PREFIX + domain, JSON.stringify({ src, ts: Date.now() })); } catch {}
-}
-
-function loadFavicons(container) {
-  container.querySelectorAll('.bookmark-icon[data-src]').forEach(img => {
-    const primarySrc = img.dataset.src;
-    const domain = img.dataset.domain || '';
-
-    const cached = getFaviconCache(domain);
-    if (cached) { img.src = cached; return; }
-
-    function tryLoad(url, fallback) {
-      const loader = new Image();
-      loader.onload = () => { img.src = url; setFaviconCache(domain, url); };
-      if (fallback) loader.onerror = () => tryLoad(fallback, null);
-      loader.src = url;
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('fav_')) localStorage.removeItem(k);
     }
-
-    const fallback = primarySrc.endsWith('/favicon.ico')
-      ? `https://${domain}/favicon.png`
-      : null;
-    tryLoad(primarySrc, fallback);
-  });
-}
+  } catch {}
+})();
 
 function setupTooltips(container) {
   container.querySelectorAll('.bookmark-item').forEach(item => {
