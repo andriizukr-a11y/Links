@@ -902,11 +902,8 @@ function bindNotesEvents(container) {
        localStorage.setItem(NOTES_ACTIVE_KEY, notesActiveTopic);
        // Встановлюємо URL хеш для нотатки
        const topicId = getTopicId(item.dataset.topic);
-       // Визначаємо тип нотатки за ID контейнера
-       const isQuickNotes = container.id?.includes('quick-notes') ||
-                            (container.closest('.notes-layout')?.parentElement?.id?.includes('quick-notes'));
-       const noteType = (typeof notesCurrentType !== 'undefined' && notesCurrentType === 'quick-notes') ? 'quick-notes' : 'notes';
-       window.location.hash = noteType + '-' + topicId;
+       // Визначаємо тип нотатки - завжди 'notes' для цього модуля
+       window.location.hash = 'notes-' + topicId;
        renderNotesUI(container);
      });
 

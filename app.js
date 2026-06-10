@@ -1,5 +1,20 @@
 /* ---------- APP (TABS + LOADING) ---------- */
 
+// Функції для роботи з ID нотаток (base64 кодування)
+function getTopicId(topicName) {
+  return btoa(topicName).replace(/=/g, '');
+}
+
+function getTopicFromId(topicId) {
+  try {
+    const padding = (4 - topicId.length % 4) % 4;
+    const paddedId = topicId + '='.repeat(padding);
+    return atob(paddedId);
+  } catch (e) {
+    return null;
+  }
+}
+
 function fileId(filename) {
   return filename.replace(/\.xbel$/i, '').replace(/[^a-zA-Z0-9]/g, '_');
 }
@@ -96,7 +111,13 @@ async function switchTab(tabId) {
   // Зберігаємо останній відкритий таб
   localStorage.setItem('lastTab', tabId);
 
-  window.location.hash = tabId;
+  // Встановлюємо хеш тільки якщо це не нотатка або якщо хеш не містить інформацію про нотатку
+  const currentHash = window.location.hash.replace('#', '');
+  if (tabId !== 'notes' && tabId !== 'quick-notes') {
+    window.location.hash = tabId;
+  } else if (!currentHash.startsWith('notes-') && !currentHash.startsWith('quick-notes-')) {
+    window.location.hash = tabId;
+  }
 
   // Lazy-load модуля нотаток при першому відкритті відповідної вкладки.
   if ((tabId === 'notes' || tabId === 'quick-notes') && typeof ensureNotesLoaded === 'function') {
@@ -143,16 +164,16 @@ async function switchTab(tabId) {
 
 function switchNotesTopic(noteType, topicId, topics) {
   // noteType: 'notes' або 'quick-notes'
-  // topicId: ідентифікатор теми з хешу
+  // topicId: ідентифікатор теми в base64
   // topics: список тем
 
-  // Знаходимо тему за ID
+  // Декодуємо ID назад в назву теми
+  const decodedName = getTopicFromId(topicId);
+
+  // Знаходимо точне збіг в списку тем
   let targetTopic = null;
-  for (const topic of topics) {
-    if (getTopicId(topic) === topicId) {
-      targetTopic = topic;
-      break;
-    }
+  if (decodedName) {
+    targetTopic = topics.find(t => getTopicId(t) === topicId);
   }
 
   if (!targetTopic) {
@@ -189,15 +210,19 @@ function openTabFromHash() {
       const topicId = hash.substring('notes-'.length);
       switchTab('notes');
       setTimeout(() => {
-        const topics = getNotesTopics();
-        switchNotesTopic('notes', topicId, topics);
+        if (typeof getNotesTopics === 'function') {
+          const topics = getNotesTopics();
+          switchNotesTopic('notes', topicId, topics);
+        }
       }, 100);
     } else if (hash.startsWith('quick-notes-')) {
       const topicId = hash.substring('quick-notes-'.length);
       switchTab('quick-notes');
       setTimeout(() => {
-        const topics = getQuickNotesTopics?.() || [];
-        switchNotesTopic('quick-notes', topicId, topics);
+        if (typeof getQuickNotesTopics === 'function') {
+          const topics = getQuickNotesTopics();
+          switchNotesTopic('quick-notes', topicId, topics);
+        }
       }, 100);
     }
   } else if (hash && document.querySelector(`[data-tab-id="${hash}"]`)) {
