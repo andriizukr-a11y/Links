@@ -1,5 +1,7 @@
 /* ---------- APP (TABS + LOADING) ---------- */
 
+let _skipHashChange = false;
+
 // Функції для роботи з ID нотаток (base64 кодування)
 function getTopicId(topicName) {
   return btoa(topicName).replace(/=/g, '');
@@ -111,7 +113,10 @@ async function switchTab(tabId) {
   // Зберігаємо останній відкритий таб
   localStorage.setItem('lastTab', tabId);
 
+  // Встановлюємо хеш, але не прослухуємо hashchange при цьому
+  _skipHashChange = true;
   window.location.hash = tabId;
+  _skipHashChange = false;
 
   // Lazy-load модуля нотаток при першому відкритті відповідної вкладки.
   if ((tabId === 'notes' || tabId === 'quick-notes') && typeof ensureNotesLoaded === 'function') {
@@ -155,6 +160,9 @@ async function switchTab(tabId) {
 }
 
 function openTabFromHash() {
+  // Пропускаємо, якщо це було викликано з switchTab
+  if (_skipHashChange) return;
+
   const hash = window.location.hash.replace('#', '');
 
   // Перевіряємо чи це хеш з нотаткою (notes-TopicId або quick-notes-TopicId)
