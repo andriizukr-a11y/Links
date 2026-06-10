@@ -167,14 +167,17 @@ function bindQuickNotesEvents(container) {
     }, 0);
   });
 
-  container.querySelectorAll('.quick-notes-topic').forEach(chip => {
-    chip.addEventListener('click', () => {
-      if (chip.classList.contains('active')) return;
-      saveCurrentQuickNoteSilent();
-      quickNotesActiveTopic = chip.dataset.topic;
-      localStorage.setItem(QUICK_NOTES_ACTIVE_KEY, quickNotesActiveTopic);
-      renderQuickNotesUI(container);
-    });
+   container.querySelectorAll('.quick-notes-topic').forEach(chip => {
+     chip.addEventListener('click', () => {
+       if (chip.classList.contains('active')) return;
+       saveCurrentQuickNoteSilent();
+       quickNotesActiveTopic = chip.dataset.topic;
+       localStorage.setItem(QUICK_NOTES_ACTIVE_KEY, quickNotesActiveTopic);
+       // Встановлюємо URL хеш для швидкої нотатки
+       const topicId = getTopicId(chip.dataset.topic);
+       window.location.hash = 'quick-notes-' + topicId;
+       renderQuickNotesUI(container);
+     });
 
     chip.addEventListener('contextmenu', e => {
       e.preventDefault();

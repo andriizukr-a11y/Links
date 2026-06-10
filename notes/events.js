@@ -894,14 +894,21 @@ function bindNotesEvents(container) {
   let lastDropTarget = null;
   let lastDropPosition = null;
 
-  container.querySelectorAll('.notes-topic-item').forEach(item => {
-    item.addEventListener('click', () => {
-      if (item.classList.contains('active')) return;
-      saveCurrentNoteSilent();
-      notesActiveTopic = item.dataset.topic;
-      localStorage.setItem(NOTES_ACTIVE_KEY, notesActiveTopic);
-      renderNotesUI(container);
-    });
+   container.querySelectorAll('.notes-topic-item').forEach(item => {
+     item.addEventListener('click', () => {
+       if (item.classList.contains('active')) return;
+       saveCurrentNoteSilent();
+       notesActiveTopic = item.dataset.topic;
+       localStorage.setItem(NOTES_ACTIVE_KEY, notesActiveTopic);
+       // Встановлюємо URL хеш для нотатки
+       const topicId = getTopicId(item.dataset.topic);
+       // Визначаємо тип нотатки за ID контейнера
+       const isQuickNotes = container.id?.includes('quick-notes') ||
+                            (container.closest('.notes-layout')?.parentElement?.id?.includes('quick-notes'));
+       const noteType = (typeof notesCurrentType !== 'undefined' && notesCurrentType === 'quick-notes') ? 'quick-notes' : 'notes';
+       window.location.hash = noteType + '-' + topicId;
+       renderNotesUI(container);
+     });
 
     item.addEventListener('dragstart', e => {
       draggedTopic = item;

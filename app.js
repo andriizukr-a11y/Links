@@ -113,6 +113,7 @@ async function switchTab(tabId) {
       notesActiveTopic = lastTopic;
       const output = document.getElementById('output-notes');
       if (output && typeof renderNotesUI === 'function') {
+        if (typeof notesCurrentType !== 'undefined') notesCurrentType = 'notes';
         renderNotesUI(output);
       }
     }
@@ -130,6 +131,7 @@ async function switchTab(tabId) {
         quickNotesActiveTopic = lastTopic;
         localStorage.setItem('quick_notes_active_topic', quickNotesActiveTopic);
       }
+      if (typeof notesCurrentType !== 'undefined') notesCurrentType = 'quick-notes';
       renderQuickNotesUI(output);
     }
   }
@@ -139,9 +141,66 @@ async function switchTab(tabId) {
   }
 }
 
+function switchNotesTopic(noteType, topicId, topics) {
+  // noteType: 'notes' або 'quick-notes'
+  // topicId: ідентифікатор теми з хешу
+  // topics: список тем
+
+  // Знаходимо тему за ID
+  let targetTopic = null;
+  for (const topic of topics) {
+    if (getTopicId(topic) === topicId) {
+      targetTopic = topic;
+      break;
+    }
+  }
+
+  if (!targetTopic) {
+    targetTopic = topics[0];
+  }
+
+  if (noteType === 'notes') {
+    notesActiveTopic = targetTopic;
+    localStorage.setItem(NOTES_ACTIVE_KEY, notesActiveTopic);
+    const output = document.getElementById('output-notes');
+    if (output && typeof renderNotesUI === 'function') {
+      if (typeof notesCurrentType !== 'undefined') notesCurrentType = 'notes';
+      renderNotesUI(output);
+    }
+  } else if (noteType === 'quick-notes') {
+    if (typeof quickNotesActiveTopic !== 'undefined') {
+      quickNotesActiveTopic = targetTopic;
+      localStorage.setItem('quick_notes_active_topic', quickNotesActiveTopic);
+    }
+    const output = document.getElementById('output-quick-notes');
+    if (output && typeof renderQuickNotesUI === 'function') {
+      if (typeof notesCurrentType !== 'undefined') notesCurrentType = 'quick-notes';
+      renderQuickNotesUI(output);
+    }
+  }
+}
+
 function openTabFromHash() {
   const hash = window.location.hash.replace('#', '');
-  if (hash && document.querySelector(`[data-tab-id="${hash}"]`)) {
+
+  // Перевіряємо чи це хеш з нотаткою (notes-TopicId або quick-notes-TopicId)
+  if (hash && (hash.startsWith('notes-') || hash.startsWith('quick-notes-'))) {
+    if (hash.startsWith('notes-')) {
+      const topicId = hash.substring('notes-'.length);
+      switchTab('notes');
+      setTimeout(() => {
+        const topics = getNotesTopics();
+        switchNotesTopic('notes', topicId, topics);
+      }, 100);
+    } else if (hash.startsWith('quick-notes-')) {
+      const topicId = hash.substring('quick-notes-'.length);
+      switchTab('quick-notes');
+      setTimeout(() => {
+        const topics = getQuickNotesTopics?.() || [];
+        switchNotesTopic('quick-notes', topicId, topics);
+      }, 100);
+    }
+  } else if (hash && document.querySelector(`[data-tab-id="${hash}"]`)) {
     switchTab(hash);
   } else {
     // Якщо немає hash, відкриваємо останній збережений таб

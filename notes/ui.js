@@ -6,6 +6,23 @@ let notesActiveTopic = null;
 let notesSaveTimer = null;
 let notesStatusTimers = [];
 let notesSyncError = null;
+let notesCurrentType = 'notes'; // 'notes' або 'quick-notes'
+
+// Функція для генерації ID теми з назви
+function getTopicId(topicName) {
+  return topicName.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+// Функція для отримання назви теми з ID
+function getTopicFromId(topicId, topics) {
+  if (!topicId) return topics[0];
+  // Спробуємо точний збіг першим
+  const cleanId = topicId.replace(/_/g, ' ');
+  const exact = topics.find(t => getTopicId(t) === topicId);
+  if (exact) return exact;
+  // Якщо немає точного збігу, повернемо першу тему
+  return topics[0];
+}
 
 function getNotesWarningHtml() {
   if (notesSyncError) {
