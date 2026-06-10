@@ -124,32 +124,34 @@ async function switchTab(tabId) {
   }
 
   if (tabId === 'notes') {
-    const topics = getNotesTopics();
-    let lastTopic = localStorage.getItem(NOTES_ACTIVE_KEY);
-    if (!lastTopic || !topics.includes(lastTopic)) {
-      lastTopic = topics[0];
-    }
-    if (lastTopic !== notesActiveTopic) {
-      notesActiveTopic = lastTopic;
-      const output = document.getElementById('output-notes');
-      if (output && typeof renderNotesUI === 'function') {
-        renderNotesUI(output);
+    // Вже установлено з openTabFromHash?
+    if (!notesActiveTopic) {
+      const topics = getNotesTopics();
+      let lastTopic = localStorage.getItem(NOTES_ACTIVE_KEY);
+      if (!lastTopic || !topics.includes(lastTopic)) {
+        lastTopic = topics[0];
       }
+      notesActiveTopic = lastTopic;
+    }
+    const output = document.getElementById('output-notes');
+    if (output && typeof renderNotesUI === 'function') {
+      renderNotesUI(output);
     }
   }
 
   if (tabId === 'quick-notes') {
-    const output = document.getElementById('output-quick-notes');
-    if (output && typeof renderQuickNotesUI === 'function') {
+    // Вже установлено з openTabFromHash?
+    if (!quickNotesActiveTopic) {
       const topics = getQuickNotesTopics();
       let lastTopic = localStorage.getItem('quick_notes_active_topic');
       if (!lastTopic || !topics.includes(lastTopic)) {
         lastTopic = topics[0];
       }
-      if (typeof quickNotesActiveTopic !== 'undefined' && lastTopic !== quickNotesActiveTopic) {
-        quickNotesActiveTopic = lastTopic;
-        localStorage.setItem('quick_notes_active_topic', quickNotesActiveTopic);
-      }
+      quickNotesActiveTopic = lastTopic;
+      localStorage.setItem('quick_notes_active_topic', quickNotesActiveTopic);
+    }
+    const output = document.getElementById('output-quick-notes');
+    if (output && typeof renderQuickNotesUI === 'function') {
       renderQuickNotesUI(output);
     }
   }
