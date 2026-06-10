@@ -299,7 +299,12 @@ function initSearch() {
   });
 }
 
-window.addEventListener('hashchange', openTabFromHash);
+window.addEventListener('hashchange', () => {
+  // Пропускаємо, якщо це було викликано з switchTab
+  if (!_skipHashChange) {
+    openTabFromHash();
+  }
+});
 
 window.addEventListener('scroll', () => {
   document.getElementById('tabs-container').classList.toggle('scrolled', window.scrollY > 10);
