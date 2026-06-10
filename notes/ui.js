@@ -7,23 +7,6 @@ let notesSaveTimer = null;
 let notesStatusTimers = [];
 let notesSyncError = null;
 
-// Функція для генерації URL-безпечного ID теми в base64
-function getTopicId(topicName) {
-  return btoa(topicName).replace(/=/g, '');
-}
-
-// Функція для декодування ID назад в назву теми
-function getTopicFromId(topicId) {
-  try {
-    // Додаємо паління якщо потрібно
-    const padding = (4 - topicId.length % 4) % 4;
-    const paddedId = topicId + '='.repeat(padding);
-    return atob(paddedId);
-  } catch (e) {
-    return null;
-  }
-}
-
 function getNotesWarningHtml() {
   if (notesSyncError) {
     return `<div class="notes-local-warning notes-sync-error">⚠ Помилка синхронізації: ${escapeHtml(notesSyncError)}. <a href="#" id="notes-setup-sync">Налаштувати</a></div>`;

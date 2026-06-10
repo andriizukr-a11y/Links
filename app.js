@@ -1,22 +1,5 @@
 /* ---------- APP (TABS + LOADING) ---------- */
 
-let _skipHashChange = false;
-
-// Функції для роботи з ID нотаток (base64 кодування)
-function getTopicId(topicName) {
-  return btoa(topicName).replace(/=/g, '');
-}
-
-function getTopicFromId(topicId) {
-  try {
-    const padding = (4 - topicId.length % 4) % 4;
-    const paddedId = topicId + '='.repeat(padding);
-    return atob(paddedId);
-  } catch (e) {
-    return null;
-  }
-}
-
 function fileId(filename) {
   return filename.replace(/\.xbel$/i, '').replace(/[^a-zA-Z0-9]/g, '_');
 }
@@ -113,10 +96,7 @@ async function switchTab(tabId) {
   // Зберігаємо останній відкритий таб
   localStorage.setItem('lastTab', tabId);
 
-  // Встановлюємо хеш, але не прослухуємо hashchange при цьому
-  _skipHashChange = true;
   window.location.hash = tabId;
-  _skipHashChange = false;
 
   // Lazy-load модуля нотаток при першому відкритті відповідної вкладки.
   if ((tabId === 'notes' || tabId === 'quick-notes') && typeof ensureNotesLoaded === 'function') {
@@ -124,34 +104,32 @@ async function switchTab(tabId) {
   }
 
   if (tabId === 'notes') {
-    // Вже установлено з openTabFromHash?
-    if (!notesActiveTopic) {
-      const topics = getNotesTopics();
-      let lastTopic = localStorage.getItem(NOTES_ACTIVE_KEY);
-      if (!lastTopic || !topics.includes(lastTopic)) {
-        lastTopic = topics[0];
-      }
-      notesActiveTopic = lastTopic;
+    const topics = getNotesTopics();
+    let lastTopic = localStorage.getItem(NOTES_ACTIVE_KEY);
+    if (!lastTopic || !topics.includes(lastTopic)) {
+      lastTopic = topics[0];
     }
-    const output = document.getElementById('output-notes');
-    if (output && typeof renderNotesUI === 'function') {
-      renderNotesUI(output);
+    if (lastTopic !== notesActiveTopic) {
+      notesActiveTopic = lastTopic;
+      const output = document.getElementById('output-notes');
+      if (output && typeof renderNotesUI === 'function') {
+        renderNotesUI(output);
+      }
     }
   }
 
   if (tabId === 'quick-notes') {
-    // Вже установлено з openTabFromHash?
-    if (!quickNotesActiveTopic) {
+    const output = document.getElementById('output-quick-notes');
+    if (output && typeof renderQuickNotesUI === 'function') {
       const topics = getQuickNotesTopics();
       let lastTopic = localStorage.getItem('quick_notes_active_topic');
       if (!lastTopic || !topics.includes(lastTopic)) {
         lastTopic = topics[0];
       }
-      quickNotesActiveTopic = lastTopic;
-      localStorage.setItem('quick_notes_active_topic', quickNotesActiveTopic);
-    }
-    const output = document.getElementById('output-quick-notes');
-    if (output && typeof renderQuickNotesUI === 'function') {
+      if (typeof quickNotesActiveTopic !== 'undefined' && lastTopic !== quickNotesActiveTopic) {
+        quickNotesActiveTopic = lastTopic;
+        localStorage.setItem('quick_notes_active_topic', quickNotesActiveTopic);
+      }
       renderQuickNotesUI(output);
     }
   }
@@ -162,48 +140,8 @@ async function switchTab(tabId) {
 }
 
 function openTabFromHash() {
-  // Пропускаємо, якщо це було викликано з switchTab
-  if (_skipHashChange) return;
-
   const hash = window.location.hash.replace('#', '');
-
-  // Перевіряємо чи це хеш з нотаткою (notes-TopicId або quick-notes-TopicId)
-  if (hash && (hash.startsWith('notes-') || hash.startsWith('quick-notes-'))) {
-    if (hash.startsWith('notes-')) {
-      const topicId = hash.substring('notes-'.length);
-      // Спочатку відкриємо вкладку notes, а потім переключимось на тему
-      switchTab('notes').then(() => {
-        if (typeof getNotesTopics === 'function') {
-          const topics = getNotesTopics();
-          const targetTopic = topics.find(t => getTopicId(t) === topicId);
-          if (targetTopic) {
-            notesActiveTopic = targetTopic;
-            localStorage.setItem(NOTES_ACTIVE_KEY, notesActiveTopic);
-            const output = document.getElementById('output-notes');
-            if (output && typeof renderNotesUI === 'function') {
-              renderNotesUI(output);
-            }
-          }
-        }
-      });
-    } else if (hash.startsWith('quick-notes-')) {
-      const topicId = hash.substring('quick-notes-'.length);
-      switchTab('quick-notes').then(() => {
-        if (typeof getQuickNotesTopics === 'function') {
-          const topics = getQuickNotesTopics();
-          const targetTopic = topics.find(t => getTopicId(t) === topicId);
-          if (targetTopic) {
-            quickNotesActiveTopic = targetTopic;
-            localStorage.setItem('quick_notes_active_topic', quickNotesActiveTopic);
-            const output = document.getElementById('output-quick-notes');
-            if (output && typeof renderQuickNotesUI === 'function') {
-              renderQuickNotesUI(output);
-            }
-          }
-        }
-      });
-    }
-  } else if (hash && document.querySelector(`[data-tab-id="${hash}"]`)) {
+  if (hash && document.querySelector(`[data-tab-id="${hash}"]`)) {
     switchTab(hash);
   } else {
     // Якщо немає hash, відкриваємо останній збережений таб
@@ -299,12 +237,7 @@ function initSearch() {
   });
 }
 
-window.addEventListener('hashchange', () => {
-  // Пропускаємо, якщо це було викликано з switchTab
-  if (!_skipHashChange) {
-    openTabFromHash();
-  }
-});
+window.addEventListener('hashchange', openTabFromHash);
 
 window.addEventListener('scroll', () => {
   document.getElementById('tabs-container').classList.toggle('scrolled', window.scrollY > 10);
