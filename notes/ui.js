@@ -6,7 +6,6 @@ let notesActiveTopic = null;
 let notesSaveTimer = null;
 let notesStatusTimers = [];
 let notesSyncError = null;
-let notesCurrentType = 'notes'; // 'notes' або 'quick-notes'
 
 // Функція для генерації URL-безпечного ID теми в base64
 function getTopicId(topicName) {

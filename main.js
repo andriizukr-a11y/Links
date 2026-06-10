@@ -139,23 +139,12 @@ if ('serviceWorker' in navigator) {
 
   injectBody();
 
-  // Перевіряємо, чи посилання містить нотатку
-  const hash = window.location.hash.replace('#', '');
-  const hasNoteHash = hash.startsWith('notes-') || hash.startsWith('quick-notes-');
-
-  const coreScripts = [
+  // Тільки core: bookmarks + tasks + app. Нотатки — lazy при першому відкритті.
+  await loadScriptsInOrder([
     'bookmarks.js',
     'tasks.js',
     'app.js'
-  ];
-
-  // Якщо в хешу нотатка, завантажимо модуль нотаток раніше
-  if (hasNoteHash) {
-    await loadScriptsInOrder(coreScripts);
-    await ensureNotesLoaded();
-  } else {
-    await loadScriptsInOrder(coreScripts);
-  }
+  ]);
 
   loadDirectory();
 })();
