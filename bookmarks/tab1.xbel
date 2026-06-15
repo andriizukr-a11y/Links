@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">
 <xbel version="1.0">
-<!--- highestId :18: for Floccus bookmark sync browser extension -->
+<!--- highestId :20: for Floccus bookmark sync browser extension -->
 
 <bookmark href="https://blimb.su/" id="1">
   <title>Blimb - Сайт для глаз</title>
@@ -11,6 +11,9 @@
 </bookmark>
 <bookmark href="https://www.youtube.com/watch?v=Y5jC8daStEc" id="18">
   <title>13 Минут Для Активации Тела | Утренняя Зарядка На Все Тело - YouTube</title>
+</bookmark>
+<bookmark href="https://separator.floccus.org/?id=795534" id="19">
+  <title>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</title>
 </bookmark>
 <bookmark href="https://www.youtube.com/watch?v=Xlmy4eg0GCs&amp;list=PLZ7gBFqQmkGj6cAWETP_Dv5Mzw-pedRPm&amp;index=1" id="3">
   <title>Immersive Interactive Warm up Fitness ORIGINAL / CLASSIC / Interactive Workout Game Online / LVL 20 - YouTube</title>
@@ -39,7 +42,7 @@
 <bookmark href="https://www.youtube.com/watch?v=0WpPi3jmDzk&amp;list=PL0KWAvKzASSe_UzXdI9pDBN82fvjRC52_" id="11">
   <title>15 МИНУТ на ВСЁ ТЕЛО! - YouTube</title>
 </bookmark>
-<bookmark href="https://separator.floccus.org/?id=795534" id="12">
+<bookmark href="https://separator.floccus.org/?id=836522" id="20">
   <title>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</title>
 </bookmark>
 <bookmark href="https://www.youtube.com/results?search_query=morning+workout&amp;sp=CAM%253D" id="13">
