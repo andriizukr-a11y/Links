@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">
 <xbel version="1.0">
-<!--- highestId :25: for Floccus bookmark sync browser extension -->
+<!--- highestId :29: for Floccus bookmark sync browser extension -->
 
 <bookmark href="https://blimb.su/" id="1">
   <title>Blimb - Сайт для глаз</title>
@@ -18,6 +18,12 @@
 <bookmark href="https://www.youtube.com/watch?v=toGLHF5XTEo" id="22">
   <title>Китайська руханка довголіття - 10 вправ для молодості тіла. Анна Цукур - YouTube</title>
 </bookmark>
+<bookmark href="https://www.youtube.com/@IvanKrasavin/videos" id="26">
+  <title>Ivan Krasavin - YouTube</title>
+</bookmark>
+<bookmark href="https://separator.floccus.org/?id=795534" id="27">
+  <title>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</title>
+</bookmark>
 <bookmark href="https://www.youtube.com/watch?v=1w0_li2mQ7E" id="23">
   <title>Упражнения на все тело. Много коротких и легких заданий. - YouTube</title>
 </bookmark>
@@ -27,7 +33,7 @@
 <bookmark href="https://www.youtube.com/watch?v=mUMbIxG-RNY" id="25">
   <title>Утренняя зарядка! ЭНЕРГИЯ на ВЕСЬ ДЕНЬ! - YouTube</title>
 </bookmark>
-<bookmark href="https://separator.floccus.org/?id=795534" id="19">
+<bookmark href="https://separator.floccus.org/?id=836522" id="28">
   <title>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</title>
 </bookmark>
 <bookmark href="https://www.youtube.com/watch?v=Xlmy4eg0GCs&amp;list=PLZ7gBFqQmkGj6cAWETP_Dv5Mzw-pedRPm&amp;index=1" id="3">
@@ -57,7 +63,7 @@
 <bookmark href="https://www.youtube.com/watch?v=0WpPi3jmDzk&amp;list=PL0KWAvKzASSe_UzXdI9pDBN82fvjRC52_" id="11">
   <title>15 МИНУТ на ВСЁ ТЕЛО! - YouTube</title>
 </bookmark>
-<bookmark href="https://separator.floccus.org/?id=836522" id="20">
+<bookmark href="https://separator.floccus.org/?id=190615" id="29">
   <title>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</title>
 </bookmark>
 <bookmark href="https://www.youtube.com/results?search_query=morning+workout&amp;sp=CAM%253D" id="13">
