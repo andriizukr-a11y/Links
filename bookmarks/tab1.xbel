@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">
 <xbel version="1.0">
-<!--- highestId :22: for Floccus bookmark sync browser extension -->
+<!--- highestId :23: for Floccus bookmark sync browser extension -->
 
 <bookmark href="https://blimb.su/" id="1">
   <title>Blimb - Сайт для глаз</title>
@@ -17,6 +17,9 @@
 </bookmark>
 <bookmark href="https://www.youtube.com/watch?v=toGLHF5XTEo" id="22">
   <title>Китайська руханка довголіття - 10 вправ для молодості тіла. Анна Цукур - YouTube</title>
+</bookmark>
+<bookmark href="https://www.youtube.com/watch?v=1w0_li2mQ7E" id="23">
+  <title>Упражнения на все тело. Много коротких и легких заданий. - YouTube</title>
 </bookmark>
 <bookmark href="https://separator.floccus.org/?id=795534" id="19">
   <title>⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯</title>
