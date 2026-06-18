@@ -109,8 +109,8 @@ body {
 .heatmap {
     display: flex;
     overflow-x: auto;
-    padding-left: 3px;
-    padding-top: 2px;
+    padding-left: 1px;
+    padding-top: 1px;
 }
 
 .week-column {
@@ -127,8 +127,8 @@ body {
     cursor: pointer;
     transition: all 0.15s;
     flex-shrink: 0;
-    margin-right: 1px;   /* відступ між колонками */
-    margin-bottom: 1px;  /* відступ між рядками */
+    margin-right: 3px;   /* відступ між колонками */
+    margin-bottom: 3px;  /* відступ між рядками */
 }
 
 .day-cell:hover {
