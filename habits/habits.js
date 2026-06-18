@@ -5,6 +5,7 @@ let habits = JSON.parse(localStorage.getItem('habits') || '[]');
 let selectedIcon = '💰';
 let editingHabitId = null;
 let editSelectedIcon = '💰';
+let draggedHabitId = null;
 
 function initHabits() {
   const output = document.getElementById('output-habits');

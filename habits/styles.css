@@ -52,23 +52,6 @@ body {
     align-items: flex-start;
     gap: 20px;
     overflow-x: auto;
-    cursor: grab;
-    user-select: none;
-}
-
-.habit-card:active {
-    cursor: grabbing;
-}
-
-.habit-card.dragging {
-    opacity: 0.5;
-    transform: scale(1.02);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.habit-card.drag-over {
-    border-color: #5b9cf5;
-    border-style: dashed;
 }
 
 .habit-header {
@@ -78,7 +61,6 @@ body {
     margin-bottom: 12px;
     min-width: 140px;
     justify-content: center;
-    cursor: pointer;
 }
 
 .habit-icon {
@@ -96,7 +78,6 @@ body {
     font-size: 16px;
     font-weight: 600;
     color: #ffffff;
-    cursor: pointer;
 }
 
 .habit-main {
