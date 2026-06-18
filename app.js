@@ -175,6 +175,9 @@ async function loadDirectory() {
       if (id === 'tasks' && typeof initTasks === 'function') {
         initTasks();
       }
+      if (id === 'habits' && typeof initHabits === 'function') {
+        initHabits();
+      }
       return;
     }
     const fileName = `tab${index + 1}.xbel`;

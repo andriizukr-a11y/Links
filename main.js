@@ -30,13 +30,15 @@ const CONFIG = {
     'Робота',
     'Нотатки',
     'Швидка нотатка',
-    'Завдання'
+    'Завдання',
+    'Звички'
   ],
 
   specialTabs: {
     'Нотатки': 'notes',
     'Швидка нотатка': 'quick-notes',
-    'Завдання': 'tasks'
+    'Завдання': 'tasks',
+    'Звички': 'habits'
   }
 };
 
@@ -139,10 +141,11 @@ if ('serviceWorker' in navigator) {
 
   injectBody();
 
-  // Тільки core: bookmarks + tasks + app. Нотатки — lazy при першому відкритті.
+  // Тільки core: bookmarks + tasks + app + habits. Нотатки — lazy при першому відкритті.
   await loadScriptsInOrder([
     'bookmarks.js',
     'tasks.js',
+    'habits/habits.js',
     'app.js'
   ]);
 

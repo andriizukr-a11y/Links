@@ -1,0 +1,27 @@
+<div class="habits-container" id="habitsContainer"></div>
+
+<button class="add-btn" onclick="openModal()">+</button>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>New Habit</h3>
+    <input type="text" id="habitName" placeholder="e.g. Side Hustle" maxlength="30">
+    <div class="icon-picker" id="iconPicker"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn save" onclick="saveHabit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit Habit</h3>
+    <input type="text" id="editHabitName" placeholder="e.g. Side Hustle" maxlength="30">
+    <div class="icon-picker" id="editIconPicker"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="modal-btn save" onclick="saveEditHabit()">Save</button>
+    </div>
+  </div>
+</div>

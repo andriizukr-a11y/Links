@@ -1,0 +1,405 @@
+/* ========== HABITS TRACKER ========== */
+
+const ICONS = ['💰', '🏃', '📚', '💪', '🧘', '💧', '🥗', '🎸', '💻', '✍️', '🎨', '🎯', '🔥', '⭐', '❤️'];
+let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+let selectedIcon = '💰';
+let editingHabitId = null;
+let editSelectedIcon = '💰';
+
+function initHabits() {
+  const output = document.getElementById('output-habits');
+  if (!output) return;
+  
+  // Load CSS
+  if (!document.querySelector('link[href="habits/styles.css"]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'habits/styles.css';
+    document.head.appendChild(link);
+  }
+  
+  // HTML content directly embedded
+  const html = `
+<div class="habits-container" id="habitsContainer"></div>
+
+<button class="add-btn" onclick="openModal()">+</button>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>New Habit</h3>
+    <input type="text" id="habitName" placeholder="e.g. Side Hustle" maxlength="30">
+    <div class="icon-picker" id="iconPicker"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn save" onclick="saveHabit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit Habit</h3>
+    <input type="text" id="editHabitName" placeholder="e.g. Side Hustle" maxlength="30">
+    <div class="icon-picker" id="editIconPicker"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="modal-btn save" onclick="saveEditHabit()">Save</button>
+    </div>
+  </div>
+</div>`;
+  
+  output.innerHTML = html;
+  
+  // Initialize the habits functionality
+  renderIconPicker();
+  renderHabits();
+  
+  document.getElementById('modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.getElementById('editModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeEditModal();
+  });
+}
+
+function renderIconPicker() {
+  const picker = document.getElementById('iconPicker');
+  if (!picker) return;
+  picker.innerHTML = ICONS.map(icon => `
+    <div class="icon-option ${icon === selectedIcon ? 'selected' : ''}" onclick="selectIcon('${icon}')">
+      ${icon}
+    </div>
+  `).join('');
+}
+
+function renderEditIconPicker() {
+  const picker = document.getElementById('editIconPicker');
+  if (!picker) return;
+  picker.innerHTML = ICONS.map(icon => `
+    <div class="icon-option ${icon === editSelectedIcon ? 'selected' : ''}" onclick="selectEditIcon('${icon}')">
+      ${icon}
+    </div>
+  `).join('');
+}
+
+function selectIcon(icon) {
+  selectedIcon = icon;
+  renderIconPicker();
+}
+
+function selectEditIcon(icon) {
+  editSelectedIcon = icon;
+  renderEditIconPicker();
+}
+
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+  document.getElementById('habitName').value = '';
+  document.getElementById('habitName').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function openEditModal(habitId) {
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit) return;
+  editingHabitId = habitId;
+  editSelectedIcon = habit.icon;
+  document.getElementById('editHabitName').value = habit.name;
+  renderEditIconPicker();
+  document.getElementById('editModal').classList.add('open');
+  document.getElementById('editHabitName').focus();
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingHabitId = null;
+}
+
+function saveHabit() {
+  const name = document.getElementById('habitName').value.trim();
+  if (!name) return;
+
+  const habit = {
+    id: Date.now(),
+    name,
+    icon: selectedIcon,
+    dates: [getLocalDateStr()]
+  };
+
+  habits.push(habit);
+  saveHabits();
+  closeModal();
+  renderHabits();
+}
+
+function saveEditHabit() {
+  const name = document.getElementById('editHabitName').value.trim();
+  if (!name || !editingHabitId) return;
+
+  const habit = habits.find(h => h.id === editingHabitId);
+  if (habit) {
+    habit.name = name;
+    habit.icon = editSelectedIcon;
+    saveHabits();
+  }
+  closeEditModal();
+  renderHabits();
+}
+
+function saveHabits() {
+  localStorage.setItem('habits', JSON.stringify(habits));
+}
+
+function deleteHabit(id) {
+  if (!confirm('Delete this habit?')) return;
+  habits = habits.filter(h => h.id !== id);
+  saveHabits();
+  renderHabits();
+}
+
+function toggleDate(habitId, dateStr) {
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit) return;
+
+  const idx = habit.dates.indexOf(dateStr);
+  if (idx > -1) {
+    habit.dates.splice(idx, 1);
+  } else {
+    habit.dates.push(dateStr);
+  }
+  saveHabits();
+  renderHabits();
+}
+
+function toggleToday(habitId) {
+  const today = getLocalDateStr();
+  toggleDate(habitId, today);
+}
+
+function getLocalDateStr(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getYearDates() {
+  const dates = [];
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const end = new Date(now.getFullYear(), 11, 31);
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    dates.push(new Date(d).toISOString().split('T')[0]);
+  }
+  return dates;
+}
+
+function getMonthData(dates) {
+  const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+  const now = new Date();
+  const counts = {};
+
+  months.forEach(m => counts[m] = 0);
+
+  dates.forEach(dateStr => {
+    const d = new Date(dateStr);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const m = monthNames[d.getMonth()];
+    if (counts.hasOwnProperty(m)) {
+      counts[m]++;
+    }
+  });
+
+  return months.map(m => ({ month: m, count: counts[m] }));
+}
+
+function getStreak(dates) {
+  if (!dates.length) return 0;
+  const sorted = [...dates].sort();
+  const today = getLocalDateStr();
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+  let streak = 0;
+  let checkDate = today;
+
+  if (!dates.includes(today)) {
+    if (dates.includes(yesterday)) {
+      checkDate = yesterday;
+    } else {
+      return 0;
+    }
+  }
+
+  while (dates.includes(checkDate)) {
+    streak++;
+    const prev = new Date(new Date(checkDate).getTime() - 86400000).toISOString().split('T')[0];
+    checkDate = prev;
+  }
+
+  return streak;
+}
+
+function getLongestStreak(dates) {
+  if (!dates.length) return 0;
+  const sorted = [...dates].sort();
+  let max = 1;
+  let current = 1;
+
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1]);
+    const curr = new Date(sorted[i]);
+    const diff = (curr - prev) / 86400000;
+
+    if (diff === 1) {
+      current++;
+      max = Math.max(max, current);
+    } else if (diff > 1) {
+      current = 1;
+    }
+  }
+
+  return max;
+}
+
+function renderHabits() {
+  const container = document.getElementById('habitsContainer');
+  if (!container) return;
+
+  if (!habits.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>No habits yet</h3>
+        <p>Click the + button to add your first habit</p>
+      </div>
+    `;
+    return;
+  }
+
+  const yearDates = getYearDates();
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  container.innerHTML = habits.map(habit => {
+    const completed = habit.dates.length;
+    const totalDays = yearDates.length;
+    const percent = totalDays ? Math.round((completed / totalDays) * 100) : 0;
+    const streak = getStreak(habit.dates);
+    const longest = getLongestStreak(habit.dates);
+    const monthData = getMonthData(habit.dates);
+    const today = getLocalDateStr();
+    const isDoneToday = habit.dates.includes(today);
+    const maxMonth = Math.max(...monthData.map(m => m.count), 1);
+
+    // === НОВА ЛОГІКА: Формуємо сітку 7xN ===
+
+    // 1. Створюємо масив усіх днів року з позиціями (Mon=0, Sun=6)
+    const daysGrid = yearDates.map(dateStr => {
+      const d = new Date(dateStr);
+      const dayOfWeek = d.getDay(); // 0=Sun, 1=Mon...
+      return {
+        dateStr,
+        dayOfWeek: dayOfWeek === 0 ? 6 : dayOfWeek - 1, // 0=Mon, 6=Sun
+        month: d.getMonth()
+      };
+    });
+
+    // 2. Визначаємо, скільки пустих клітинок потрібно на початку
+    // Якщо перший день — це, наприклад, четвер (3), то треба 3 пусті клітинки (Mon, Tue, Wed)
+    const firstDayOffset = daysGrid[0].dayOfWeek;
+
+    // 3. Визначаємо, скільки пустих клітинок потрібно в кінці
+    // Щоб загальна кількість ділитися на 7
+    const lastDayOffset = daysGrid[daysGrid.length - 1].dayOfWeek;
+    const endPadding = 6 - lastDayOffset;
+
+    // 4. Будуємо плоский масив усіх клітинок (включаючи пусті)
+    const allCells = [];
+
+    // Пусті клітинки на початку
+    for (let i = 0; i < firstDayOffset; i++) {
+      allCells.push(null);
+    }
+
+    // Реальні дні
+    daysGrid.forEach(day => {
+      allCells.push(day.dateStr);
+    });
+
+    // Пусті клітинки в кінці
+    for (let i = 0; i < endPadding; i++) {
+      allCells.push(null);
+    }
+
+    // 5. Розбиваємо на тижні (по 7 клітинок)
+    const weeks = [];
+    for (let i = 0; i < allCells.length; i += 7) {
+      weeks.push(allCells.slice(i, i + 7));
+    }
+
+    // 6. Мітки місяців: показуємо місяць над першим повним тижнем місяця
+    const monthLabels = [];
+    let currentMonth = -1;
+
+    weeks.forEach((week, weekIdx) => {
+      // Шукаємо перший реальний день у тижні
+      for (let day of week) {
+        if (day) {
+          const d = new Date(day);
+          const m = d.getMonth();
+          if (m !== currentMonth) {
+            monthLabels.push({ week: weekIdx, month: monthNames[m] });
+            currentMonth = m;
+          }
+          break;
+        }
+      }
+    });
+
+    // === КІНЕЦЬ НОВОЇ ЛОГІКИ ===
+
+    // Build heatmap HTML
+    let heatmapHTML = '<div class="heatmap-wrapper">';
+
+    // Heatmap grid
+    heatmapHTML += '<div class="heatmap">';
+    weeks.forEach((week) => {
+      heatmapHTML += '<div class="week-column">';
+      week.forEach((dateStr) => {
+        if (dateStr) {
+          const isActive = habit.dates.includes(dateStr);
+          const isToday = dateStr === today;
+          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}"
+            onclick="toggleDate(${habit.id}, '${dateStr}')"
+            title="${dateStr}"></div>`;
+        } else {
+          heatmapHTML += '<div class="day-cell empty"></div>';
+        }
+      });
+      heatmapHTML += '</div>';
+    });
+    heatmapHTML += '</div></div>';
+
+    const chartHTML = monthData.map(m => `
+      <div class="bar" style="height: ${Math.max((m.count / maxMonth) * 50, 4)}px;">
+        <div class="bar-value">${m.count}</div>
+        <div class="bar-label">${m.month}</div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="habit-card">
+        <div class="habit-main">
+          <div class="habit-header">
+            <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
+            <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
+          </div>
+          ${heatmapHTML}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
