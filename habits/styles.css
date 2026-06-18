@@ -167,7 +167,7 @@ body {
 
 .add-btn {
     position: fixed;
-    top: 24px;
+    down: 35px;
     right: 24px;
     width: 48px;
     height: 48px;
