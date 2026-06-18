@@ -52,8 +52,12 @@ body {
     align-items: flex-start;
     gap: 20px;
     overflow-x: auto;
-    cursor: move;
+    cursor: grab;
     user-select: none;
+}
+
+.habit-card:active {
+    cursor: grabbing;
 }
 
 .habit-card.dragging {
