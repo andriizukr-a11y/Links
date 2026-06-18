@@ -109,7 +109,8 @@ body {
 .heatmap {
     display: flex;
     overflow-x: auto;
-    padding: 2px;
+    padding-left: 3px;
+    padding-top: 1px;
 }
 
 .week-column {
