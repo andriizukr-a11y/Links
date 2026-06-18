@@ -391,7 +391,10 @@ function renderHabits() {
     `).join('');
 
     return `
-      <div class="habit-card">
+      <div class="habit-card" draggable="true" data-habit-id="${habit.id}"
+           ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)"
+           ondragover="handleDragOver(event)" ondrop="handleDrop(event)"
+           ondragleave="handleDragLeave(event)">
         <div class="habit-main">
           <div class="habit-header">
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
