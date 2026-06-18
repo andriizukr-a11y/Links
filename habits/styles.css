@@ -127,8 +127,8 @@ body {
     cursor: pointer;
     transition: all 0.15s;
     flex-shrink: 0;
-    margin-right: 3px;   /* відступ між колонками */
-    margin-bottom: 3px;  /* відступ між рядками */
+    margin-right: 1px;   /* відступ між колонками */
+    margin-bottom: 1px;  /* відступ між рядками */
 }
 
 .day-cell:hover {
