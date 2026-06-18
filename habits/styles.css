@@ -36,7 +36,7 @@ body {
 .habits-container {
     display: grid;
     grid-template-columns: repeat(2, min-content);
-    gap: 10px;
+    gap: 20px;
     justify-content: center;  /* центруємо всю сітку по горизонталі */
     width: fit-content;        /* контейнер займає рівно ширину сітки */
     margin: 0 auto;            /* центруємо контейнер на сторінці */
@@ -47,8 +47,6 @@ body {
     border: 1px solid #333333;
     border-radius: 12px;
     padding: 10px 20px 17px;
-    margin-right: 5px;
-    margin-left: 5px;
     display: flex;
     align-items: flex-start;
     gap: 20px;
