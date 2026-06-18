@@ -246,7 +246,7 @@ body {
 .icon-option {
     width: 40px;
     height: 40px;
-    background: #21262d;
+    background: #282828;
     border: 2px solid transparent;
     border-radius: 8px;
     display: flex;
@@ -258,12 +258,12 @@ body {
 }
 
 .icon-option:hover {
-    background: #30363d;
+    background: #2c2c2c;
 }
 
 .icon-option.selected {
-    border-color: #58a6ff;
-    background: #1f6feb22;
+    border-color: #5b9cf5;
+    background: rgba(91, 156, 245, 0.12);
 }
 
 .modal-buttons {
@@ -283,21 +283,21 @@ body {
 }
 
 .modal-btn.cancel {
-    background: #21262d;
-    color: #8b949e;
+    background: #282828;
+    color: #999999;
 }
 
 .modal-btn.cancel:hover {
-    background: #30363d;
+    background: #2c2c2c;
 }
 
 .modal-btn.save {
-    background: #238636;
+    background: #4ac06a;
     color: white;
 }
 
 .modal-btn.save:hover {
-    background: #2ea043;
+    background: #5bcf7a;
 }
 
 .delete-btn {
