@@ -88,7 +88,6 @@ body {
 .heatmap-wrapper {
     display: flex;
     gap: 20px;
-    padding: 2px;
 }
 
 .weekday-labels {
@@ -110,6 +109,7 @@ body {
 .heatmap {
     display: flex;
     overflow-x: auto;
+    padding: 2px;
 }
 
 .week-column {
