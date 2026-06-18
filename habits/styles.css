@@ -46,12 +46,25 @@ body {
     background: #212121;
     border: 1px solid #333333;
     border-radius: 12px;
-    padding: 10px 20px 20px;
+    padding: 10px 20px 17px;
     margin: 5px;
     display: flex;
     align-items: flex-start;
     gap: 20px;
     overflow-x: auto;
+    cursor: move;
+    user-select: none;
+}
+
+.habit-card.dragging {
+    opacity: 0.5;
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.habit-card.drag-over {
+    border-color: #5b9cf5;
+    border-style: dashed;
 }
 
 .habit-header {
@@ -61,6 +74,7 @@ body {
     margin-bottom: 12px;
     min-width: 140px;
     justify-content: center;
+    cursor: pointer;
 }
 
 .habit-icon {
