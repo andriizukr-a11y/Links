@@ -18,8 +18,7 @@ const ICONS = [
   { id: 'heart', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>' },
   { id: 'bike', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"></circle><circle cx="18.5" cy="17.5" r="3.5"></circle><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"></path></svg>' },
   { id: 'pill', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><path d="m8.5 8.5 7 7"></path></svg>' },
-  { id: 'briefcase', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>' },
-  { id: 'zap', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>' }
+  { id: 'briefcase', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>' }
 ];
 let habits = JSON.parse(localStorage.getItem('habits') || '[]');
 
@@ -39,7 +38,8 @@ const emojiToIconMap = {
   '🎯': 'target',
   '🔥': 'flame',
   '⭐': 'star',
-  '❤️': 'heart'
+  '❤️': 'heart',
+  '💼': 'briefcase'
 };
 
 // Перевіряємо чи потрібно мігрувати
@@ -58,6 +58,34 @@ let editSelectedIcon = ICONS[0];
 let draggedHabitId = null;
 let cachedYearDates = null;
 let cachedYear = null;
+
+// Створюємо кастомний tooltip елемент
+function createTooltip() {
+  let tooltip = document.querySelector('.custom-tooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.className = 'custom-tooltip';
+    document.body.appendChild(tooltip);
+  }
+  return tooltip;
+}
+
+// Показуємо кастомний tooltip
+function showTooltip(text, x, y) {
+  const tooltip = createTooltip();
+  tooltip.textContent = text;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+  tooltip.classList.add('visible');
+}
+
+// Ховаємо кастомний tooltip
+function hideTooltip() {
+  const tooltip = document.querySelector('.custom-tooltip');
+  if (tooltip) {
+    tooltip.classList.remove('visible');
+  }
+}
 
 function playSuccessSound() {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -365,6 +393,10 @@ function toggleDate(habitId, dateStr, event) {
   const habit = habits.find(h => h.id === habitId);
   if (!habit) return;
 
+  // Зберігаємо поточну позицію миші для відновлення hover
+  const mouseX = event ? event.clientX : 0;
+  const mouseY = event ? event.clientY : 0;
+
   const idx = habit.dates.indexOf(dateStr);
   if (idx > -1) {
     habit.dates.splice(idx, 1);
@@ -391,6 +423,8 @@ function toggleDate(habitId, dateStr, event) {
   // Відкладаємо перерендеринг, щоб анімація пульсації встигла відіграти
   setTimeout(() => {
     renderHabits();
+    // Відновлюємо hover на клітинці після перерендерингу
+    restoreHover(mouseX, mouseY);
   }, 300);
 }
 
@@ -398,6 +432,10 @@ function toggleSkippedDate(habitId, dateStr, event) {
   event.preventDefault();
   const habit = habits.find(h => h.id === habitId);
   if (!habit) return;
+
+  // Зберігаємо поточну позицію миші для відновлення hover
+  const mouseX = event ? event.clientX : 0;
+  const mouseY = event ? event.clientY : 0;
 
   if (!habit.skippedDates) {
     habit.skippedDates = [];
@@ -425,6 +463,8 @@ function toggleSkippedDate(habitId, dateStr, event) {
   }
   saveHabits();
   renderHabits();
+  // Відновлюємо hover на клітинці після перерендерингу
+  restoreHover(mouseX, mouseY);
 }
 
 function toggleToday(habitId) {
@@ -653,19 +693,6 @@ function renderHabits() {
     const habitDatesSet = new Set(habit.dates);
     const habitSkippedSet = new Set(habit.skippedDates || []);
 
-    // Month labels
-    heatmapHTML += '<div class="month-labels">';
-    let labelIndex = 0;
-    for (let i = 0; i < weeks.length; i++) {
-      if (labelIndex < monthLabels.length && monthLabels[labelIndex].week === i) {
-        heatmapHTML += `<div class="month-label">${monthLabels[labelIndex].month}</div>`;
-        labelIndex++;
-      } else {
-        heatmapHTML += '<div class="month-label"></div>';
-      }
-    }
-    heatmapHTML += '</div>';
-
     // Heatmap grid
     heatmapHTML += '<div class="heatmap">';
     weeks.forEach((week) => {
@@ -780,6 +807,13 @@ function setupHoverListeners() {
         closestCell.style.zIndex = '10';
         closestCell.style.position = 'relative';
         hoveredCell = closestCell;
+
+        // Показуємо кастомний tooltip
+        const cellRect = closestCell.getBoundingClientRect();
+        const dateStr = closestCell.getAttribute('title');
+        if (dateStr) {
+          showTooltip(dateStr, cellRect.left + cellRect.width / 2, cellRect.top);
+        }
       }
     });
 
@@ -794,6 +828,57 @@ function setupHoverListeners() {
         hoveredCell.style.removeProperty('position');
         hoveredCell = null;
       }
+      // Ховаємо кастомний tooltip
+      hideTooltip();
     });
+  });
+}
+
+function restoreHover(mouseX, mouseY) {
+  const heatmaps = document.querySelectorAll('.heatmap');
+  heatmaps.forEach(heatmap => {
+    const rect = heatmap.getBoundingClientRect();
+    // Перевіряємо чи миша над цією heatmap
+    if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
+      const cells = heatmap.querySelectorAll('.day-cell');
+      if (cells.length === 0) return;
+
+      // Знаходимо найближчу клітинку до позиції миші
+      let closestCell = null;
+      let closestDistance = Infinity;
+
+      const localMouseX = mouseX - rect.left;
+      const localMouseY = mouseY - rect.top;
+
+      cells.forEach(cell => {
+        const cellRect = cell.getBoundingClientRect();
+        const cellX = cellRect.left - rect.left + cellRect.width / 2;
+        const cellY = cellRect.top - rect.top + cellRect.height / 2;
+
+        const distance = Math.sqrt(Math.pow(localMouseX - cellX, 2) + Math.pow(localMouseY - cellY, 2));
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestCell = cell;
+        }
+      });
+
+      // Застосовуємо hover стилі до знайденої клітинки
+      if (closestCell && closestDistance < 20) {
+        const isClosestActive = closestCell.classList.contains('active');
+        if (!isClosestActive) {
+          closestCell.style.borderColor = '#8b949e';
+        }
+        closestCell.style.transform = 'scale(1.2)';
+        closestCell.style.zIndex = '10';
+        closestCell.style.position = 'relative';
+
+        // Показуємо кастомний tooltip
+        const cellRect = closestCell.getBoundingClientRect();
+        const dateStr = closestCell.getAttribute('title');
+        if (dateStr) {
+          showTooltip(dateStr, cellRect.left + cellRect.width / 2, cellRect.top);
+        }
+      }
+    }
   });
 }

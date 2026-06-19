@@ -245,7 +245,7 @@ body {
 }
 
 .add-btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.6);
 }
 
 .modal-overlay {
@@ -395,6 +395,27 @@ body {
 .empty-state h3 {
     font-size: 24px;
     color: #ffffff;
+}
+
+/* Custom tooltip */
+.custom-tooltip {
+    position: fixed;
+    background: #333333;
+    color: #ffffff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.15s;
+    transform: translate(-50%, -100%);
+    margin-top: -8px;
+}
+
+.custom-tooltip.visible {
+    opacity: 1;
+}
     margin-bottom: 12px;
 }
 
