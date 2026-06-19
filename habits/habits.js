@@ -618,7 +618,8 @@ function saveHabit() {
     id: Date.now(),
     name,
     icon: selectedIcon.id,
-    dates: [getLocalDateStr()],
+    dates: [],           // <-- НЕ відмічаємо сьогодні автоматично
+    skippedDates: [],    // <-- пустий масив для пропусків
     reminderEnabled,
     reminderTime: reminderEnabled ? reminderTime : null
   };
