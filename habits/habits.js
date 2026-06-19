@@ -248,7 +248,7 @@ function initHabits() {
 <div class="habits-container" id="habitsContainer"></div>
 
 <div class="habits-actions">
-  <button class="stats-btn" onclick="openStatsModal()" title="Statistics">
+  <button class="stats-btn" onclick="openStatsModal()" title="Статистика">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
   </button>
   <button class="add-btn" onclick="openModal()">+</button>
@@ -256,39 +256,39 @@ function initHabits() {
 
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <h3>New Habit</h3>
-    <input type="text" id="habitName" placeholder="e.g. Side Hustle" maxlength="30">
+    <h3>Нова звичка</h3>
+    <input type="text" id="habitName" placeholder="наприклад, Спорт" maxlength="30">
     <div class="icon-picker" id="iconPicker"></div>
     <div class="modal-buttons">
-      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
-      <button class="modal-btn save" onclick="saveHabit()">Save</button>
+      <button class="modal-btn cancel" onclick="closeModal()">Скасувати</button>
+      <button class="modal-btn save" onclick="saveHabit()">Зберегти</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="editModal">
   <div class="modal">
-    <h3>Edit Habit</h3>
-    <input type="text" id="editHabitName" placeholder="e.g. Side Hustle" maxlength="30">
+    <h3>Редагувати звичку</h3>
+    <input type="text" id="editHabitName" placeholder="наприклад, Спорт" maxlength="30">
     <div class="icon-picker" id="editIconPicker"></div>
     <div class="modal-buttons">
-      <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
-      <button class="modal-btn save" onclick="saveEditHabit()">Save</button>
+      <button class="modal-btn cancel" onclick="closeEditModal()">Скасувати</button>
+      <button class="modal-btn save" onclick="saveEditHabit()">Зберегти</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="statsModal">
   <div class="modal stats-modal">
-    <h3>📊 Statistics</h3>
+    <h3>📊 Статистика</h3>
     <div class="stats-tabs">
-      <button class="stats-tab active" data-tab="trends">Trends</button>
-      <button class="stats-tab" data-tab="comparison">Comparison</button>
-      <button class="stats-tab" data-tab="analysis">Analysis</button>
+      <button class="stats-tab active" data-tab="trends">Тенденції</button>
+      <button class="stats-tab" data-tab="comparison">Порівняння</button>
+      <button class="stats-tab" data-tab="analysis">Аналіз</button>
     </div>
     <div class="stats-content" id="statsContent"></div>
     <div class="modal-buttons">
-      <button class="modal-btn cancel" onclick="closeStatsModal()">Close</button>
+      <button class="modal-btn cancel" onclick="closeStatsModal()">Закрити</button>
     </div>
   </div>
 </div>`;
@@ -415,7 +415,7 @@ function saveHabits() {
 }
 
 function deleteHabit(id) {
-  if (!confirm('Delete this habit?')) return;
+  if (!confirm('Видалити цю звичку?')) return;
   habits = habits.filter(h => h.id !== id);
   saveHabits();
   renderHabits();
@@ -669,8 +669,8 @@ function renderHabits() {
   if (!habits.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <h3>No habits yet</h3>
-        <p>Click the + button to add your first habit</p>
+        <h3>Ще немає звичок</h3>
+        <p>Натисніть кнопку +, щоб додати першу звичку</p>
       </div>
     `;
     return;
@@ -1016,12 +1016,12 @@ function renderStatsContent(tab) {
 
 function renderTrendsTab(container) {
   if (habits.length === 0) {
-    container.innerHTML = '<div class="stats-empty">No habits to analyze</div>';
+    container.innerHTML = '<div class="stats-empty">Немає звичок для аналізу</div>';
     return;
   }
 
   const currentYear = new Date().getFullYear();
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = ['Січ', 'Лют', 'Бер', 'Кві', 'Тра', 'Чер', 'Лип', 'Сер', 'Вер', 'Жов', 'Лис', 'Гру'];
   
   let html = '<div class="stats-chart-container">';
   html += '<canvas id="trendsChart" width="700" height="300"></canvas>';
@@ -1144,7 +1144,7 @@ function drawTrendsChart(year, months) {
 
 function renderComparisonTab(container) {
   if (habits.length === 0) {
-    container.innerHTML = '<div class="stats-empty">No habits to compare</div>';
+    container.innerHTML = '<div class="stats-empty">Немає звичок для порівняння</div>';
     return;
   }
 
@@ -1172,12 +1172,12 @@ function renderComparisonTab(container) {
   
   let html = '<div class="comparison-table">';
   html += '<div class="comparison-header">';
-  html += '<div class="comparison-cell">Habit</div>';
-  html += '<div class="comparison-cell">Days</div>';
-  html += '<div class="comparison-cell">Success</div>';
-  html += '<div class="comparison-cell">Streak</div>';
-  html += '<div class="comparison-cell">Best</div>';
-  html += '<div class="comparison-cell">Skipped</div>';
+  html += '<div class="comparison-cell">Звичка</div>';
+  html += '<div class="comparison-cell">Днів</div>';
+  html += '<div class="comparison-cell">Успіх</div>';
+  html += '<div class="comparison-cell">Серія</div>';
+  html += '<div class="comparison-cell">Найкраща</div>';
+  html += '<div class="comparison-cell">Пропущено</div>';
   html += '</div>';
   
   habitMetrics.forEach((habit, index) => {
@@ -1208,15 +1208,15 @@ function renderComparisonTab(container) {
   
   html += '<div class="comparison-summary">';
   html += `<div class="summary-item">
-    <div class="summary-label">Total Completions</div>
+    <div class="summary-label">Всього виконано</div>
     <div class="summary-value">${totalCompleted}</div>
   </div>`;
   html += `<div class="summary-item">
-    <div class="summary-label">Total Skipped</div>
+    <div class="summary-label">Всього пропущено</div>
     <div class="summary-value">${totalSkipped}</div>
   </div>`;
   html += `<div class="summary-item">
-    <div class="summary-label">Average Success</div>
+    <div class="summary-label">Середній успіх</div>
     <div class="summary-value">${avgPercent}%</div>
   </div>`;
   html += '</div>';
@@ -1226,13 +1226,13 @@ function renderComparisonTab(container) {
 
 function renderAnalysisTab(container) {
   if (habits.length === 0) {
-    container.innerHTML = '<div class="stats-empty">No habits to analyze</div>';
+    container.innerHTML = '<div class="stats-empty">Немає звичок для аналізу</div>';
     return;
   }
 
   const currentYear = new Date().getFullYear();
-  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const weekdays = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця', 'Субота', 'Неділя'];
+  const months = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
   
   // Analyze by weekday
   const weekdayAnalysis = weekdays.map((day, index) => {
@@ -1290,7 +1290,7 @@ function renderAnalysisTab(container) {
   });
   
   let html = '<div class="analysis-section">';
-  html += '<h4>📅 Success by Day of Week</h4>';
+  html += '<h4>📅 Успіх за днями тижня</h4>';
   html += '<div class="analysis-chart">';
   
   const maxWeekdayPercent = Math.max(...weekdayAnalysis.map(d => d.percent), 1);
@@ -1309,7 +1309,7 @@ function renderAnalysisTab(container) {
   html += '</div></div>';
   
   html += '<div class="analysis-section">';
-  html += '<h4>📆 Success by Month</h4>';
+  html += '<h4>📆 Успіх за місяцями</h4>';
   html += '<div class="analysis-chart">';
   
   const maxMonthPercent = Math.max(...monthAnalysis.map(m => m.percent), 1);
@@ -1337,28 +1337,28 @@ function renderAnalysisTab(container) {
   html += `<div class="insight-item">
     <div class="insight-icon">🏆</div>
     <div class="insight-text">
-      <div class="insight-label">Best Day</div>
+      <div class="insight-label">Найкращий день</div>
       <div class="insight-value">${bestDay.day} (${bestDay.percent}%)</div>
     </div>
   </div>`;
   html += `<div class="insight-item">
     <div class="insight-icon">📉</div>
     <div class="insight-text">
-      <div class="insight-label">Worst Day</div>
+      <div class="insight-label">Найгірший день</div>
       <div class="insight-value">${worstDay.day} (${worstDay.percent}%)</div>
     </div>
   </div>`;
   html += `<div class="insight-item">
     <div class="insight-icon">🌟</div>
     <div class="insight-text">
-      <div class="insight-label">Best Month</div>
+      <div class="insight-label">Найкращий місяць</div>
       <div class="insight-value">${bestMonth.month} (${bestMonth.percent}%)</div>
     </div>
   </div>`;
   html += `<div class="insight-item">
     <div class="insight-icon">📊</div>
     <div class="insight-text">
-      <div class="insight-label">Worst Month</div>
+      <div class="insight-label">Найгірший місяць</div>
       <div class="insight-value">${worstMonth.month} (${worstMonth.percent}%)</div>
     </div>
   </div>`;
