@@ -915,26 +915,36 @@ function getStreak(dates) {
   if (!dates.length) return 0;
 
   const today = getLocalDateStr();
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000);
+  const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
 
-  // Оптимізація: використовуємо Set для O(1) lookup
   const datesSet = new Set(dates);
 
   let streak = 0;
-  let checkDate = today;
+  let checkDate = new Date();
 
+  // Якщо сьогодні немає — перевіряємо вчора
   if (!datesSet.has(today)) {
-    if (datesSet.has(yesterday)) {
+    if (datesSet.has(yesterdayStr)) {
       checkDate = yesterday;
     } else {
       return 0;
     }
   }
 
-  while (datesSet.has(checkDate)) {
-    streak++;
-    const prev = new Date(new Date(checkDate).getTime() - 86400000).toISOString().split('T')[0];
-    checkDate = prev;
+  // Ідемо назад по днях
+  while (true) {
+    const year = checkDate.getFullYear();
+    const month = String(checkDate.getMonth() + 1).padStart(2, '0');
+    const day = String(checkDate.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
+    if (datesSet.has(dateStr)) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
   }
 
   return streak;
@@ -1122,6 +1132,10 @@ function renderHabits() {
           <div class="habit-header">
             <div class="habit-icon" onclick="openEditModal(${habit.id})">${iconSvg}</div>
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
+            <div class="streak-badge" title="Серія: ${streak} днів поспіль">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+              <span class="streak-count">${streak}</span>
+            </div>
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
           ${heatmapHTML}
