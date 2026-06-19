@@ -193,10 +193,20 @@ body {
 }
 
 
-
 .day-cell.skipped {
-    background: linear-gradient(135deg, #282828 50%, #f85149 50%);
-    border-color: #f85149;
+  background:
+    linear-gradient(45deg,
+      transparent 47%,
+      #f85149 47%,
+      #f85149 53%,
+      transparent 53%),
+    linear-gradient(-45deg,
+      transparent 47%,
+      #f85149 47%,
+      #f85149 53%,
+      transparent 53%),
+    #282828;
+  border-color: #f85149;
 }
 
 .day-cell.shake {
