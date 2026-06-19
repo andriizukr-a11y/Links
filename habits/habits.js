@@ -659,6 +659,8 @@ function renderHabits() {
       </div>
     `).join('');
 
+    const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || ICONS[0].svg;
+
     return `
       <div class="habit-card" draggable="true" data-habit-id="${habit.id}"
            ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)"
@@ -667,7 +669,7 @@ function renderHabits() {
            oncontextmenu="return false;">
         <div class="habit-main">
           <div class="habit-header">
-            <div class="habit-icon">${habit.icon}</div>
+            <div class="habit-icon">${iconSvg}</div>
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
