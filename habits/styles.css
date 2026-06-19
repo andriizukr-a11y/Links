@@ -382,6 +382,12 @@ body {
     transition: all 0.15s;
 }
 
+.add-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+}
+
 .add-btn:hover {
     transform: scale(1.2);
 }
