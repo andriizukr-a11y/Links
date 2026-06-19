@@ -1075,6 +1075,7 @@ function renderHabits() {
         const isActive = habitDatesSet.has(dateStr);
         const isSkipped = habitSkippedSet.has(dateStr);
         const isToday = dateStr === today;
+        const isFuture = dateStr > today;  // Add this line
 
         // Конвертуємо дату у формат dd.mm.yyyy для відображення
         const [year, month, day] = dateStr.split('-');
@@ -1088,10 +1089,10 @@ function renderHabits() {
             data-date="${displayDate}"></div>`;
         } else {
           // Клітинки поточного року
-          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''}"
-            onclick="toggleDate(${habit.id}, '${dateStr}', event)"
-            oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
-            data-date="${displayDate}"></div>`;
+        heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}"
+          onclick="toggleDate(${habit.id}, '${dateStr}', event)"
+          oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
+          data-date="${displayDate}"></div>`;
         }
       });
       heatmapHTML += '</div>';

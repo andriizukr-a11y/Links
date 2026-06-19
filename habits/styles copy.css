@@ -1,0 +1,25 @@
+.day-cell.skipped { /* Червоний зліва трикутник */
+  background:
+    linear-gradient(
+      135deg,
+      #f85149 0 50%,
+      #282828 50% 100%
+    );
+  border-color: #f85149;
+}
+
+.day-cell.skipped { /* Червоний хрест */
+  background:
+    linear-gradient(45deg,
+      transparent 47%,
+      #f85149 47%,
+      #f85149 53%,
+      transparent 53%),
+    linear-gradient(-45deg,
+      transparent 47%,
+      #f85149 47%,
+      #f85149 53%,
+      transparent 53%),
+    #282828;
+  border-color: #f85149;
+}
