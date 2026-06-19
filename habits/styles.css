@@ -269,6 +269,12 @@ body {
     transition: all 0.15s;
 }
 
+.stats-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+}
+
 .stats-btn:hover {
     transform: scale(1.1);
     color: #5b9cf5;
