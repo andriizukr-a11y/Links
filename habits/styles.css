@@ -244,10 +244,37 @@ body {
 
 
 
-.add-btn {
+.habits-actions {
     position: fixed;
     bottom: 35px;
     right: 24px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+}
+
+.stats-btn {
+    width: 48px;
+    height: 48px;
+    background: #282828;
+    border: none;
+    border-radius: 50%;
+    color: #999999;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.15s;
+}
+
+.stats-btn:hover {
+    transform: scale(1.1);
+    color: #5b9cf5;
+}
+
+.add-btn {
     width: 48px;
     height: 48px;
     background: #282828;
@@ -260,7 +287,6 @@ body {
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     transition: all 0.15s;
-    z-index: 100;
 }
 
 .add-btn:hover {
@@ -434,5 +460,343 @@ body {
 
 .custom-tooltip.visible {
     opacity: 1;
+}
+
+/* Statistics Modal Styles */
+.stats-modal {
+    width: 800px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.stats-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333333;
+    padding-bottom: 12px;
+}
+
+.stats-tab {
+    background: transparent;
+    border: none;
+    color: #999999;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.stats-tab:hover {
+    color: #e8e8e8;
+    background: #282828;
+}
+
+.stats-tab.active {
+    color: #5b9cf5;
+    background: rgba(91, 156, 245, 0.1);
+}
+
+.stats-content {
+    min-height: 400px;
+}
+
+.stats-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999999;
+    font-size: 16px;
+}
+
+.stats-chart-container {
+    margin-bottom: 20px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #333333;
+}
+
+#trendsChart {
+    width: 100%;
+    height: auto;
+}
+
+.stats-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #282828;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.legend-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.legend-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: #e8e8e8;
+}
+
+.legend-name {
+    color: #e8e8e8;
+    font-weight: 500;
+}
+
+/* Comparison Table Styles */
+.comparison-table {
+    margin-bottom: 24px;
+}
+
+.comparison-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #282828;
+    border-radius: 8px 8px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #999999;
+}
+
+.comparison-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #212121;
+    border-bottom: 1px solid #333333;
+    align-items: center;
+}
+
+.comparison-row:last-child {
+    border-radius: 0 0 8px 8px;
+    border-bottom: none;
+}
+
+.comparison-row:hover {
+    background: #282828;
+}
+
+.comparison-row.rank-1 {
+    background: rgba(255, 215, 0, 0.1);
+    border-left: 3px solid #ffd700;
+}
+
+.comparison-row.rank-2 {
+    background: rgba(192, 192, 192, 0.1);
+    border-left: 3px solid #c0c0c0;
+}
+
+.comparison-row.rank-3 {
+    background: rgba(205, 127, 50, 0.1);
+    border-left: 3px solid #cd7f32;
+}
+
+.comparison-cell {
+    text-align: center;
+    color: #e8e8e8;
+    font-size: 14px;
+}
+
+.habit-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.rank-badge {
+    width: 24px;
+    height: 24px;
+    background: #333333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #999999;
+}
+
+.comparison-row.rank-1 .rank-badge {
+    background: #ffd700;
+    color: #1a1a1a;
+}
+
+.comparison-row.rank-2 .rank-badge {
+    background: #c0c0c0;
+    color: #1a1a1a;
+}
+
+.comparison-row.rank-3 .rank-badge {
+    background: #cd7f32;
+    color: #1a1a1a;
+}
+
+.habit-icon-small {
+    width: 28px;
+    height: 28px;
+    background: #282828;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.habit-icon-small svg {
+    width: 16px;
+    height: 16px;
+    stroke: #e8e8e8;
+}
+
+.habit-name-small {
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.comparison-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.summary-item {
+    background: #282828;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.summary-label {
+    font-size: 12px;
+    color: #999999;
+    margin-bottom: 8px;
+}
+
+.summary-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #5b9cf5;
+}
+
+/* Analysis Styles */
+.analysis-section {
+    margin-bottom: 32px;
+}
+
+.analysis-section h4 {
+    font-size: 16px;
+    color: #ffffff;
+    margin-bottom: 16px;
+}
+
+.analysis-chart {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #333333;
+}
+
+.analysis-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.analysis-bar-item:last-child {
+    margin-bottom: 0;
+}
+
+.analysis-label {
+    width: 40px;
+    font-size: 12px;
+    color: #999999;
+    text-align: right;
+}
+
+.analysis-bar-track {
+    flex: 1;
+    height: 24px;
+    background: #282828;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.analysis-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5b9cf5, #7ab3f8);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.analysis-value {
+    width: 45px;
+    font-size: 13px;
+    color: #e8e8e8;
+    font-weight: 500;
+    text-align: right;
+}
+
+.analysis-insights {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.insight-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #282828;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.insight-icon {
+    font-size: 24px;
+}
+
+.insight-text {
+    flex: 1;
+}
+
+.insight-label {
+    font-size: 12px;
+    color: #999999;
+    margin-bottom: 4px;
+}
+
+.insight-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
 }
 
