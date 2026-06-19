@@ -51,6 +51,7 @@ body {
     display: flex;
     align-items: flex-start;
     gap: 20px;
+    cursor: move;
 }
 
 .habit-card.dragging {
