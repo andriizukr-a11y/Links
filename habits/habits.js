@@ -6,11 +6,13 @@ let selectedIcon = '💰';
 let editingHabitId = null;
 let editSelectedIcon = '💰';
 let draggedHabitId = null;
+let cachedYearDates = null;
+let cachedYear = null;
 
 function initHabits() {
   const output = document.getElementById('output-habits');
   if (!output) return;
-  
+
   // Load CSS
   if (!document.querySelector('link[href="habits/styles.css"]')) {
     const link = document.createElement('link');
@@ -18,7 +20,7 @@ function initHabits() {
     link.href = 'habits/styles.css';
     document.head.appendChild(link);
   }
-  
+
   // HTML content directly embedded
   const html = `
 <div class="habits-container" id="habitsContainer"></div>
@@ -48,13 +50,17 @@ function initHabits() {
     </div>
   </div>
 </div>`;
-  
+
   output.innerHTML = html;
-  
-  // Initialize the habits functionality
+
+  // Initialize the habits functionality - відкладаємо важкий рендеринг
   renderIconPicker();
-  renderHabits();
-  
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      renderHabits();
+    });
+  });
+
   document.getElementById('modal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeModal();
   });
@@ -188,54 +194,63 @@ function getLocalDateStr(date = new Date()) {
 }
 
 function getYearDates() {
+  const currentYear = new Date().getFullYear();
+  if (cachedYearDates && cachedYear === currentYear) {
+    return cachedYearDates;
+  }
+
   const dates = [];
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const end = new Date(now.getFullYear(), 11, 31);
+  const start = new Date(currentYear, 0, 1);
+  const end = new Date(currentYear, 11, 31);
 
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     dates.push(new Date(d).toISOString().split('T')[0]);
   }
+
+  cachedYearDates = dates;
+  cachedYear = currentYear;
   return dates;
 }
 
 function getMonthData(dates) {
   const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
-  const now = new Date();
   const counts = {};
-
   months.forEach(m => counts[m] = 0);
 
-  dates.forEach(dateStr => {
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  for (const dateStr of dates) {
     const d = new Date(dateStr);
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const m = monthNames[d.getMonth()];
     if (counts.hasOwnProperty(m)) {
       counts[m]++;
     }
-  });
+  }
 
   return months.map(m => ({ month: m, count: counts[m] }));
 }
 
 function getStreak(dates) {
   if (!dates.length) return 0;
-  const sorted = [...dates].sort();
+
   const today = getLocalDateStr();
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+  // Оптимізація: використовуємо Set для O(1) lookup
+  const datesSet = new Set(dates);
 
   let streak = 0;
   let checkDate = today;
 
-  if (!dates.includes(today)) {
-    if (dates.includes(yesterday)) {
+  if (!datesSet.has(today)) {
+    if (datesSet.has(yesterday)) {
       checkDate = yesterday;
     } else {
       return 0;
     }
   }
 
-  while (dates.includes(checkDate)) {
+  while (datesSet.has(checkDate)) {
     streak++;
     const prev = new Date(new Date(checkDate).getTime() - 86400000).toISOString().split('T')[0];
     checkDate = prev;
@@ -251,8 +266,8 @@ function getLongestStreak(dates) {
   let current = 1;
 
   for (let i = 1; i < sorted.length; i++) {
-    const prev = new Date(sorted[i - 1]);
-    const curr = new Date(sorted[i]);
+    const prev = new Date(sorted[i - 1]).getTime();
+    const curr = new Date(sorted[i]).getTime();
     const diff = (curr - prev) / 86400000;
 
     if (diff === 1) {
@@ -283,87 +298,71 @@ function renderHabits() {
   const yearDates = getYearDates();
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const today = getLocalDateStr();
+
+  // Оптимізація: обчислюємо загальні дані один раз для всіх звичок
+  const daysGrid = yearDates.map(dateStr => {
+    const d = new Date(dateStr);
+    const dayOfWeek = d.getDay();
+    return {
+      dateStr,
+      dayOfWeek: dayOfWeek === 0 ? 6 : dayOfWeek - 1,
+      month: d.getMonth()
+    };
+  });
+
+  const firstDayOffset = daysGrid[0].dayOfWeek;
+  const lastDayOffset = daysGrid[daysGrid.length - 1].dayOfWeek;
+  const endPadding = 6 - lastDayOffset;
+
+  const allCells = [];
+  for (let i = 0; i < firstDayOffset; i++) {
+    allCells.push(null);
+  }
+  daysGrid.forEach(day => {
+    allCells.push(day.dateStr);
+  });
+  for (let i = 0; i < endPadding; i++) {
+    allCells.push(null);
+  }
+
+  const weeks = [];
+  for (let i = 0; i < allCells.length; i += 7) {
+    weeks.push(allCells.slice(i, i + 7));
+  }
+
+  const monthLabels = [];
+  let currentMonth = -1;
+  weeks.forEach((week, weekIdx) => {
+    for (let day of week) {
+      if (day) {
+        const d = new Date(day);
+        const m = d.getMonth();
+        if (m !== currentMonth) {
+          monthLabels.push({ week: weekIdx, month: monthNames[m] });
+          currentMonth = m;
+        }
+        break;
+      }
+    }
+  });
+
+  const totalDays = yearDates.length;
 
   container.innerHTML = habits.map(habit => {
     const completed = habit.dates.length;
-    const totalDays = yearDates.length;
     const percent = totalDays ? Math.round((completed / totalDays) * 100) : 0;
     const streak = getStreak(habit.dates);
     const longest = getLongestStreak(habit.dates);
     const monthData = getMonthData(habit.dates);
-    const today = getLocalDateStr();
     const isDoneToday = habit.dates.includes(today);
-    const maxMonth = Math.max(...monthData.map(m => m.count), 1);
-
-    // === НОВА ЛОГІКА: Формуємо сітку 7xN ===
-
-    // 1. Створюємо масив усіх днів року з позиціями (Mon=0, Sun=6)
-    const daysGrid = yearDates.map(dateStr => {
-      const d = new Date(dateStr);
-      const dayOfWeek = d.getDay(); // 0=Sun, 1=Mon...
-      return {
-        dateStr,
-        dayOfWeek: dayOfWeek === 0 ? 6 : dayOfWeek - 1, // 0=Mon, 6=Sun
-        month: d.getMonth()
-      };
-    });
-
-    // 2. Визначаємо, скільки пустих клітинок потрібно на початку
-    // Якщо перший день — це, наприклад, четвер (3), то треба 3 пусті клітинки (Mon, Tue, Wed)
-    const firstDayOffset = daysGrid[0].dayOfWeek;
-
-    // 3. Визначаємо, скільки пустих клітинок потрібно в кінці
-    // Щоб загальна кількість ділитися на 7
-    const lastDayOffset = daysGrid[daysGrid.length - 1].dayOfWeek;
-    const endPadding = 6 - lastDayOffset;
-
-    // 4. Будуємо плоский масив усіх клітинок (включаючи пусті)
-    const allCells = [];
-
-    // Пусті клітинки на початку
-    for (let i = 0; i < firstDayOffset; i++) {
-      allCells.push(null);
-    }
-
-    // Реальні дні
-    daysGrid.forEach(day => {
-      allCells.push(day.dateStr);
-    });
-
-    // Пусті клітинки в кінці
-    for (let i = 0; i < endPadding; i++) {
-      allCells.push(null);
-    }
-
-    // 5. Розбиваємо на тижні (по 7 клітинок)
-    const weeks = [];
-    for (let i = 0; i < allCells.length; i += 7) {
-      weeks.push(allCells.slice(i, i + 7));
-    }
-
-    // 6. Мітки місяців: показуємо місяць над першим повним тижнем місяця
-    const monthLabels = [];
-    let currentMonth = -1;
-
-    weeks.forEach((week, weekIdx) => {
-      // Шукаємо перший реальний день у тижні
-      for (let day of week) {
-        if (day) {
-          const d = new Date(day);
-          const m = d.getMonth();
-          if (m !== currentMonth) {
-            monthLabels.push({ week: weekIdx, month: monthNames[m] });
-            currentMonth = m;
-          }
-          break;
-        }
-      }
-    });
-
-    // === КІНЕЦЬ НОВОЇ ЛОГІКИ ===
+    const maxMonth = monthData.length > 0 ? Math.max(...monthData.map(m => m.count), 1) : 1;
 
     // Build heatmap HTML
     let heatmapHTML = '<div class="heatmap-wrapper">';
+
+    // Оптимізація: використовуємо Set для O(1) lookup дат
+    const habitDatesSet = new Set(habit.dates);
 
     // Heatmap grid
     heatmapHTML += '<div class="heatmap">';
@@ -371,7 +370,7 @@ function renderHabits() {
       heatmapHTML += '<div class="week-column">';
       week.forEach((dateStr) => {
         if (dateStr) {
-          const isActive = habit.dates.includes(dateStr);
+          const isActive = habitDatesSet.has(dateStr);
           const isToday = dateStr === today;
           heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}"
             onclick="toggleDate(${habit.id}, '${dateStr}')"

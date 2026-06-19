@@ -98,9 +98,13 @@ async function switchTab(tabId) {
 
   window.location.hash = tabId;
 
-  // Lazy-load модуля нотаток при першому відкритті відповідної вкладки.
+  // Lazy-load модулів при першому відкритті відповідної вкладки.
   if ((tabId === 'notes' || tabId === 'quick-notes') && typeof ensureNotesLoaded === 'function') {
     await ensureNotesLoaded();
+  }
+
+  if (tabId === 'habits' && typeof initHabits === 'function') {
+    initHabits();
   }
 
   if (tabId === 'notes') {
@@ -171,13 +175,11 @@ async function loadDirectory() {
     const isSpecial = CONFIG.specialTabs && CONFIG.specialTabs[tabName];
     if (isSpecial) {
       const id = CONFIG.specialTabs[tabName];
-      // notes/quick-notes ініціалізуються lazy при першому переході (див. switchTab).
+      // notes/quick-notes/habits ініціалізуються lazy при першому переході (див. switchTab).
       if (id === 'tasks' && typeof initTasks === 'function') {
         initTasks();
       }
-      if (id === 'habits' && typeof initHabits === 'function') {
-        initHabits();
-      }
+      // habits тепер lazy-loaded в switchTab
       return;
     }
     const fileName = `tab${index + 1}.xbel`;
