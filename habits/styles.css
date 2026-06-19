@@ -53,6 +53,16 @@ body {
     gap: 20px;
 }
 
+.habit-card.dragging {
+    opacity: 0.5;
+    cursor: move;
+}
+
+.habit-card.drag-over {
+    border-color: #5b9cf5;
+    background: #282828;
+}
+
 .habit-header {
     display: flex;
     align-items: center;
@@ -115,17 +125,6 @@ body {
 .week-column {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-}
-
-.week-month-label {
-    font-size: 8px;
-    color: #666666;
-    text-transform: capitalize;
-    line-height: 10px;
-    height: 10px;
-    text-align: center;
-    margin-bottom: 1px;
 }
 
 .heatmap {
@@ -144,6 +143,7 @@ body {
     cursor: pointer;
     flex-shrink: 0;
     margin-right: 3px;   /* відступ між колонками */
+    margin-bottom: 3px;  /* відступ між рядками */
 }
 
 .day-cell.padding {
@@ -234,14 +234,6 @@ body {
 
 .day-cell.today {
     border-color: #5b9cf5;
-}
-
-.day-cell.weekend {
-    background: #2d2d2d;
-}
-
-.day-cell.weekend.active {
-    background: #6aa7f7;
 }
 
 

@@ -281,7 +281,9 @@ function initHabits() {
   <button class="stats-btn" onclick="openStatsModal()" title="Статистика">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
   </button>
-  <button class="add-btn" onclick="openModal()">+</button>
+  <button class="add-btn" onclick="openModal()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+  </button>
 </div>
 
 <div class="modal-overlay" id="modal">
@@ -455,6 +457,61 @@ function deleteHabit(id) {
   habits = habits.filter(h => h.id !== id);
   saveHabits();
   renderHabits();
+}
+
+function handleDragStart(event) {
+  const card = event.target.closest('.habit-card');
+  if (!card) return;
+  draggedHabitId = parseInt(card.dataset.habitId);
+  card.classList.add('dragging');
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragEnd(event) {
+  const card = event.target.closest('.habit-card');
+  if (card) {
+    card.classList.remove('dragging');
+  }
+  document.querySelectorAll('.habit-card').forEach(c => {
+    c.classList.remove('drag-over');
+  });
+}
+
+function handleDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  const card = event.target.closest('.habit-card');
+  if (card && parseInt(card.dataset.habitId) !== draggedHabitId) {
+    card.classList.add('drag-over');
+  }
+}
+
+function handleDragLeave(event) {
+  const card = event.target.closest('.habit-card');
+  if (card) {
+    card.classList.remove('drag-over');
+  }
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  const card = event.target.closest('.habit-card');
+  if (!card) return;
+
+  const targetHabitId = parseInt(card.dataset.habitId);
+  if (targetHabitId === draggedHabitId) return;
+
+  const draggedIndex = habits.findIndex(h => h.id === draggedHabitId);
+  const targetIndex = habits.findIndex(h => h.id === targetHabitId);
+
+  if (draggedIndex !== -1 && targetIndex !== -1) {
+    const [draggedHabit] = habits.splice(draggedIndex, 1);
+    habits.splice(targetIndex, 0, draggedHabit);
+    saveHabits();
+    renderHabits();
+  }
+
+  draggedHabitId = null;
 }
 
 function toggleDate(habitId, dateStr, event) {
@@ -718,8 +775,6 @@ function renderHabits() {
 
   const currentYear = new Date().getFullYear();
   const yearDates = getYearDates();
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const today = getLocalDateStr();
 
   // Оптимізація: обчислюємо загальні дані один раз для всіх звичок
@@ -786,22 +841,6 @@ function renderHabits() {
     weeks.push(allCells.slice(i, i + 7));
   }
 
-  const monthLabels = [];
-  let currentMonth = -1;
-  weeks.forEach((week, weekIdx) => {
-    for (let day of week) {
-      if (day) {
-        const d = new Date(day);
-        const m = d.getMonth();
-        if (m !== currentMonth) {
-          monthLabels.push({ week: weekIdx, month: monthNames[m] });
-          currentMonth = m;
-        }
-        break;
-      }
-    }
-  });
-
   const totalDays = yearDates.length;
 
   container.innerHTML = habits.map(habit => {
@@ -823,14 +862,7 @@ function renderHabits() {
     // Heatmap grid
     heatmapHTML += '<div class="heatmap">';
     weeks.forEach((week, weekIdx) => {
-      // Перевіряємо чи треба додати лейбл місяця для цієї колонки
-      const monthLabel = monthLabels.find(l => l.week === weekIdx)?.month || '';
-      const showLabel = monthLabel !== '';
-
       heatmapHTML += '<div class="week-column">';
-      if (showLabel) {
-        heatmapHTML += `<div class="week-month-label">${monthLabel}</div>`;
-      }
       week.forEach((cellData) => {
         const dateStr = cellData.dateStr;
         const isPadding = cellData.isPadding;
@@ -838,26 +870,19 @@ function renderHabits() {
         const isSkipped = habitSkippedSet.has(dateStr);
         const isToday = dateStr === today;
 
-        // Визначаємо день тижня для виділення вихідних
-        const d = new Date(dateStr);
-        const dayOfWeek = d.getDay(); // 0 = неділя, 6 = субота
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
         // Конвертуємо дату у формат dd.mm.yyyy для відображення
         const [year, month, day] = dateStr.split('-');
         const displayDate = `${day}.${month}`;
 
-        const weekendClass = isWeekend && !isPadding ? 'weekend' : '';
-
         if (isPadding) {
           // Клітинки з попереднього/наступного року - можна натискати, але вони з іншим стилем
-          heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${weekendClass}"
+          heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
         } else {
           // Клітинки поточного року
-          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''} ${weekendClass}"
+          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
@@ -884,8 +909,8 @@ function renderHabits() {
            oncontextmenu="return false;">
         <div class="habit-main">
           <div class="habit-header">
-            <div class="habit-icon" onclick="openEditModal(${habit.id})">${iconSvg}</div>
-            <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
+            <div class="habit-icon" onclick="if (!draggedHabitId) openEditModal(${habit.id})">${iconSvg}</div>
+            <div class="habit-name" onclick="if (!draggedHabitId) openEditModal(${habit.id})">${habit.name}</div>
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
           ${heatmapHTML}
