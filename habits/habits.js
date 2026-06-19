@@ -476,107 +476,6 @@ function createSkipParticles(x, y) {
   }
 }
 
-// ========== NOTIFICATION FUNCTIONS ==========
-
-async function requestNotificationPermission() {
-  if (!('Notification' in window)) {
-    console.log('Цей браузер не підтримує сповіщення');
-    return false;
-  }
-
-  if (Notification.permission === 'granted') {
-    return true;
-  }
-
-  if (Notification.permission !== 'denied') {
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
-  }
-
-  return false;
-}
-
-function sendHabitReminder(habit) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    return;
-  }
-
-  const today = getLocalDateStr();
-  const isAlreadyDone = habit.dates.includes(today);
-  const isAlreadySkipped = habit.skippedDates && habit.skippedDates.includes(today);
-
-  if (isAlreadyDone || isAlreadySkipped) {
-    return; // Не відправляти нагадування, якщо вже виконано або пропущено сьогодні
-  }
-
-  const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || '';
-  
-  const notification = new Notification(`🔔 Нагадування: ${habit.name}`, {
-    body: 'Час виконати вашу звичку!',
-    icon: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(iconSvg)}`,
-    tag: `habit-${habit.id}-${today}`,
-    requireInteraction: true
-  });
-
-  notification.onclick = function() {
-    window.focus();
-    notification.close();
-  };
-}
-
-function checkReminders() {
-  const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const today = getLocalDateStr();
-
-  habits.forEach(habit => {
-    if (habit.reminderEnabled && habit.reminderTime === currentTime) {
-      sendHabitReminder(habit);
-    }
-  });
-}
-
-let reminderCheckInterval = null;
-
-function startReminderChecker() {
-  if (reminderCheckInterval) {
-    clearInterval(reminderCheckInterval);
-  }
-  
-  // Перевіряємо кожну хвилину
-  reminderCheckInterval = setInterval(checkReminders, 60000);
-  
-  // Також перевіряємо одразу при старті
-  checkReminders();
-}
-
-function stopReminderChecker() {
-  if (reminderCheckInterval) {
-    clearInterval(reminderCheckInterval);
-    reminderCheckInterval = null;
-  }
-}
-
-async function testNotification() {
-  const hasPermission = await requestNotificationPermission();
-  
-  if (!hasPermission) {
-    alert('Будь ласка, надайте дозвіл на сповіщення в налаштуваннях браузера');
-    return;
-  }
-
-  const testNotification = new Notification('🔔 Тест сповіщень', {
-    body: 'Сповіщення працюють коректно!',
-    icon: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="%235b9cf5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>'),
-    requireInteraction: true
-  });
-
-  testNotification.onclick = function() {
-    window.focus();
-    testNotification.close();
-  };
-}
-
 function initHabits() {
   const output = document.getElementById('output-habits');
   if (!output) return;
@@ -610,7 +509,7 @@ function initHabits() {
   }
 
   // Запускаємо перевірку нагадувань
-  startReminderChecker();
+  startReminderChecker(habits, ICONS, getLocalDateStr);
   
   // Перевіряємо, чи є звички з увімкненими нагадуваннями
   const hasReminderEnabled = habits.some(h => h.reminderEnabled);
@@ -638,6 +537,9 @@ function initHabits() {
   </button>
   <button class="notification-btn" onclick="testNotification()" title="Тест сповіщень">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+  </button>
+  <button class="achievements-btn" onclick="openAchievementsModal()" title="Досягнення">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
   </button>
   <button class="add-btn" onclick="openModal()">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -697,6 +599,16 @@ function initHabits() {
   </div>
 </div>
 
+<div class="modal-overlay" id="achievementsModal">
+  <div class="modal achievements-modal">
+    <h3>🏆 Досягнення</h3>
+    <div class="achievements-content" id="achievementsContent"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeAchievementsModal()">Закрити</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="deleteModal">
   <div class="modal">
     <h3>Підтвердження видалення</h3>
@@ -740,6 +652,9 @@ function initHabits() {
   document.getElementById('statsModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeStatsModal();
   });
+  document.getElementById('achievementsModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeAchievementsModal();
+  });
   
   // Stats tabs event listeners
   document.querySelectorAll('.stats-tab').forEach(tab => {
@@ -779,19 +694,6 @@ function selectIcon(iconId) {
 function selectEditIcon(iconId) {
   editSelectedIcon = ICONS.find(icon => icon.id === iconId);
   renderEditIconPicker();
-}
-
-function toggleReminderTimeInput(checkboxId, timeInputId) {
-  const checkbox = document.getElementById(checkboxId);
-  const timeInput = document.getElementById(timeInputId);
-  
-  if (checkbox.checked) {
-    timeInput.style.display = 'block';
-    // Запитуємо дозвіл на сповіщення при ввімкненні нагадувань
-    requestNotificationPermission();
-  } else {
-    timeInput.style.display = 'none';
-  }
 }
 
 function openModal() {
@@ -1357,8 +1259,21 @@ function renderHabits() {
     `).join('');
 
     const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || ICONS[0].svg;
-    const reminderIndicator = habit.reminderEnabled ? 
-      `<div class="reminder-indicator" title="Нагадування о ${habit.reminderTime}">🔔</div>` : '';
+    const reminderIndicator = habit.reminderEnabled ?
+      `<div class="reminder-indicator" title="Нагадування о ${habit.reminderTime}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+        </svg>
+      </div>` : '';
+    
+    // Отримуємо нагороди та показуємо останні 3
+    const habitAchievements = getHabitAchievements(habit);
+    const recentAchievements = habitAchievements.slice(-3);
+    const achievementsHTML = recentAchievements.length > 0 ? 
+      `<div class="habit-achievements">
+        ${recentAchievements.map(a => `<div class="achievement-badge" title="${a.name}: ${a.description}">${a.icon}</div>`).join('')}
+      </div>` : '';
 
     return `
       <div class="habit-card" data-habit-id="${habit.id}"
@@ -1531,6 +1446,109 @@ function openStatsModal() {
 
 function closeStatsModal() {
   document.getElementById('statsModal').classList.remove('open');
+}
+
+function openAchievementsModal() {
+  document.getElementById('achievementsModal').classList.add('open');
+  renderAchievementsContent();
+}
+
+function closeAchievementsModal() {
+  document.getElementById('achievementsModal').classList.remove('open');
+}
+
+function renderAchievementsContent() {
+  const content = document.getElementById('achievementsContent');
+  if (!content) return;
+
+  if (habits.length === 0) {
+    content.innerHTML = '<div class="achievements-empty">Додайте звички, щоб отримувати досягнення!</div>';
+    return;
+  }
+
+  // Групуємо досягнення по звичках
+  let html = '<div class="achievements-grid">';
+  
+  habits.forEach(habit => {
+    const habitAchievements = getHabitAchievements(habit);
+    const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || ICONS[0].svg;
+    
+    if (habitAchievements.length > 0) {
+      html += `
+        <div class="habit-achievements-card">
+          <div class="habit-achievements-header">
+            <div class="habit-achievements-icon">${iconSvg}</div>
+            <div class="habit-achievements-name">${habit.name}</div>
+            <div class="habit-achievements-count">${habitAchievements.length}</div>
+          </div>
+          <div class="habit-achievements-list">
+            ${habitAchievements.map(achievement => `
+              <div class="achievement-item">
+                <div class="achievement-item-icon">${achievement.icon}</div>
+                <div class="achievement-item-info">
+                  <div class="achievement-item-name">${achievement.name}</div>
+                  <div class="achievement-item-description">${achievement.description}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+  });
+  
+  html += '</div>';
+
+  // Додаємо список всіх можливих досягнень
+  html += '<div class="all-achievements-section">';
+  html += '<h4>📋 Всі можливі досягнення</h4>';
+  html += '<div class="all-achievements-list">';
+  
+  Object.values(ACHIEVEMENTS).forEach(achievement => {
+    const isUnlocked = habits.some(h => h.achievements && h.achievements.includes(achievement.id));
+    html += `
+      <div class="achievement-overview-item ${isUnlocked ? 'unlocked' : 'locked'}">
+        <div class="achievement-overview-icon">${achievement.icon}</div>
+        <div class="achievement-overview-info">
+          <div class="achievement-overview-name">${achievement.name}</div>
+          <div class="achievement-overview-description">${achievement.description}</div>
+        </div>
+        <div class="achievement-overview-status">
+          ${isUnlocked ? '✅' : '🔒'}
+        </div>
+      </div>
+    `;
+  });
+  
+  html += '</div></div>';
+
+  // Показуємо статистику
+  const totalAchievements = Object.keys(ACHIEVEMENTS).length;
+  const unlockedAchievements = new Set();
+  habits.forEach(h => {
+    if (h.achievements) {
+      h.achievements.forEach(a => unlockedAchievements.add(a));
+    }
+  });
+  
+  html += `
+    <div class="achievements-summary">
+      <div class="summary-stat">
+        <div class="summary-stat-value">${unlockedAchievements.size}/${totalAchievements}</div>
+        <div class="summary-stat-label">Розблоковано</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-stat-value">${habits.length}</div>
+        <div class="summary-stat-label">Звичок</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-stat-value">${Math.round((unlockedAchievements.size / totalAchievements) * 100)}%</div>
+        <div class="summary-stat-label">Прогрес</div>
+      </div>
+    </div>
+  `;
+
+  content.innerHTML = html;
 }
 
 function renderStatsContent(tab) {

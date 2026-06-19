@@ -1,0 +1,74 @@
+/* ========== REMINDERS STYLES ========== */
+
+.reminder-settings {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #333333;
+}
+
+.reminder-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    color: #e8e8e8;
+    margin-bottom: 12px;
+}
+
+.reminder-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #5b9cf5;
+    cursor: pointer;
+    vertical-align: middle;
+    margin: 0;
+}
+
+.reminder-toggle:hover {
+    color: #ffffff;
+}
+
+.reminder-time-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: #282828;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    color: #e8e8e8;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.15s;
+}
+
+.reminder-time-input:focus {
+    border-color: #5b9cf5;
+    background: #2c2c2c;
+}
+
+.reminder-time-input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+.reminder-indicator {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+    margin-right: 4px;
+    opacity: 0.3;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reminder-indicator svg {
+    stroke: #888888;
+}
+
+.habit-header:hover .reminder-indicator {
+    opacity: 0.6;
+}
