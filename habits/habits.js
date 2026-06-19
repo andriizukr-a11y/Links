@@ -465,6 +465,7 @@ function handleDragStart(event) {
   draggedHabitId = parseInt(card.dataset.habitId);
   card.classList.add('dragging');
   event.dataTransfer.effectAllowed = 'move';
+  event.preventDefault();
 }
 
 function handleDragEnd(event) {
