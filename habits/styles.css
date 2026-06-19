@@ -286,7 +286,8 @@ body {
 .habits-actions.show-actions .import-btn,
 .habits-actions.show-actions .sync-btn,
 .habits-actions.show-actions .stats-btn,
-.habits-actions.show-actions .notification-btn {
+.habits-actions.show-actions .notification-btn,
+.habits-actions.show-actions .add-btn {
     opacity: 1;
 }
 
@@ -453,6 +454,7 @@ body {
     align-items: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     transition: all 0.15s;
+    opacity: 0.2;
 }
 
 .add-btn svg {
@@ -464,6 +466,7 @@ body {
 .add-btn:hover {
     transform: scale(1.1);
     color: #1abc9c;
+    opacity: 1;
 }
 
 .modal-overlay {
@@ -672,6 +675,18 @@ body {
 
 .delete-btn:hover {
     color: #f85149;
+}
+
+.reminder-indicator {
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: 8px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.habit-header:hover .reminder-indicator {
+    opacity: 1;
 }
 
 .empty-state {

@@ -60,6 +60,250 @@ let draggedHabitId = null;
 let cachedYearDates = null;
 let cachedYear = null;
 
+// ========== ACHIEVEMENTS SYSTEM ==========
+
+const ACHIEVEMENTS = {
+  firstDay: {
+    id: 'firstDay',
+    name: 'Перший крок',
+    description: 'Виконати звичку 1 день',
+    icon: '🌟',
+    threshold: 1,
+    type: 'totalDays'
+  },
+  week: {
+    id: 'week',
+    name: 'Тиждень',
+    description: 'Виконати звичку 7 днів',
+    icon: '📅',
+    threshold: 7,
+    type: 'totalDays'
+  },
+  threeWeeks: {
+    id: 'threeWeeks',
+    name: '21 день',
+    description: 'Виконати звичку 21 день',
+    icon: '🏆',
+    threshold: 21,
+    type: 'totalDays'
+  },
+  month: {
+    id: 'month',
+    name: 'Місяць',
+    description: 'Виконати звичку 30 днів',
+    icon: '📈',
+    threshold: 30,
+    type: 'totalDays'
+  },
+  hundredDays: {
+    id: 'hundredDays',
+    name: '100 днів',
+    description: 'Виконати звичку 100 днів',
+    icon: '💯',
+    threshold: 100,
+    type: 'totalDays'
+  },
+  halfYear: {
+    id: 'halfYear',
+    name: 'Пів року',
+    description: 'Виконати звичку 180 днів',
+    icon: '⭐',
+    threshold: 180,
+    type: 'totalDays'
+  },
+  year: {
+    id: 'year',
+    name: 'Рік',
+    description: 'Виконати звичку 365 днів',
+    icon: '👑',
+    threshold: 365,
+    type: 'totalDays'
+  },
+  streak7: {
+    id: 'streak7',
+    name: 'Серія 7',
+    description: 'Серія з 7 днів поспіль',
+    icon: '🔥',
+    threshold: 7,
+    type: 'streak'
+  },
+  streak30: {
+    id: 'streak30',
+    name: 'Серія 30',
+    description: 'Серія з 30 днів поспіль',
+    icon: '🚀',
+    threshold: 30,
+    type: 'streak'
+  },
+  streak100: {
+    id: 'streak100',
+    name: 'Серія 100',
+    description: 'Серія з 100 днів поспіль',
+    icon: '💪',
+    threshold: 100,
+    type: 'streak'
+  },
+  perfectWeek: {
+    id: 'perfectWeek',
+    name: 'Ідеальний тиждень',
+    description: 'Виконати звичку щодня протягом тижня',
+    icon: '✨',
+    threshold: 7,
+    type: 'perfectWeek'
+  },
+  perfectMonth: {
+    id: 'perfectMonth',
+    name: 'Ідеальний місяць',
+    description: 'Виконати звичку щодня протягом місяця',
+    icon: '🌟',
+    threshold: 30,
+    type: 'perfectMonth'
+  }
+};
+
+function checkAchievements(habit) {
+  const newAchievements = [];
+  const earnedAchievements = habit.achievements || [];
+  
+  // Перевіряємо досягнення за загальною кількістю днів
+  const totalDays = habit.dates.length;
+  
+  Object.values(ACHIEVEMENTS).forEach(achievement => {
+    if (earnedAchievements.includes(achievement.id)) return; // Уже отримано
+    
+    let earned = false;
+    
+    switch (achievement.type) {
+      case 'totalDays':
+        earned = totalDays >= achievement.threshold;
+        break;
+      case 'streak':
+        earned = getStreak(habit.dates) >= achievement.threshold;
+        break;
+      case 'perfectWeek':
+        earned = checkPerfectPeriod(habit.dates, 7);
+        break;
+      case 'perfectMonth':
+        earned = checkPerfectPeriod(habit.dates, 30);
+        break;
+    }
+    
+    if (earned) {
+      newAchievements.push(achievement);
+    }
+  });
+  
+  return newAchievements;
+}
+
+function checkPerfectPeriod(dates, days) {
+  if (dates.length < days) return false;
+  
+  const sortedDates = [...dates].sort();
+  const today = getLocalDateStr();
+  
+  // Перевіряємо останні N днів
+  for (let i = 0; i < days; i++) {
+    const checkDate = new Date();
+    checkDate.setDate(checkDate.getDate() - i);
+    const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+    
+    if (!sortedDates.includes(dateStr)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function awardAchievement(habit, achievement) {
+  if (!habit.achievements) {
+    habit.achievements = [];
+  }
+  
+  if (!habit.achievements.includes(achievement.id)) {
+    habit.achievements.push(achievement.id);
+    
+    // Показуємо анімацію отримання нагороди
+    showAchievementNotification(habit, achievement);
+    
+    // Зберігаємо changes
+    saveHabits();
+    
+    return true;
+  }
+  
+  return false;
+}
+
+function showAchievementNotification(habit, achievement) {
+  // Створюємо спеціальне сповіщення про досягнення
+  const notification = document.createElement('div');
+  notification.className = 'achievement-notification';
+  notification.innerHTML = `
+    <div class="achievement-content">
+      <div class="achievement-icon">${achievement.icon}</div>
+      <div class="achievement-text">
+        <div class="achievement-title">🎉 Нове досягнення!</div>
+        <div class="achievement-name">${achievement.name}</div>
+        <div class="achievement-description">${achievement.description}</div>
+        <div class="achievement-habit">для "${habit.name}"</div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Анімація появи
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 100);
+  
+  // Автоматично приховуємо через 5 секунд
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      notification.remove();
+    }, 500);
+  }, 5000);
+  
+  // Звук досягнення
+  playAchievementSound();
+  
+  // Confetti
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  createConfetti(centerX, centerY);
+}
+
+function playAchievementSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  const frequencies = [523.25, 659.25, 783.99, 1046.50];
+  frequencies.forEach((freq, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = freq;
+    oscillator.type = 'sine';
+    
+    const startTime = audioContext.currentTime + (index * 0.1);
+    gainNode.gain.setValueAtTime(0.3, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.3);
+  });
+}
+
+function getHabitAchievements(habit) {
+  if (!habit.achievements) return [];
+  return habit.achievements.map(id => ACHIEVEMENTS[id]).filter(a => a);
+}
+
 // Створюємо кастомний tooltip елемент
 function createTooltip() {
   let tooltip = document.querySelector('.custom-tooltip');
@@ -744,6 +988,12 @@ function toggleDate(habitId, dateStr, event) {
     if (event) {
       createConfetti(event.clientX, event.clientY);
     }
+    
+    // Перевіряємо нові досягнення
+    const newAchievements = checkAchievements(habit);
+    newAchievements.forEach(achievement => {
+      awardAchievement(habit, achievement);
+    });
   }
   saveHabits();
   renderHabits();
@@ -1107,6 +1357,8 @@ function renderHabits() {
     `).join('');
 
     const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || ICONS[0].svg;
+    const reminderIndicator = habit.reminderEnabled ? 
+      `<div class="reminder-indicator" title="Нагадування о ${habit.reminderTime}">🔔</div>` : '';
 
     return `
       <div class="habit-card" data-habit-id="${habit.id}"
@@ -1119,6 +1371,7 @@ function renderHabits() {
           <div class="habit-header">
             <div class="habit-icon" onclick="openEditModal(${habit.id})">${iconSvg}</div>
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
+            ${reminderIndicator}
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
           ${heatmapHTML}
