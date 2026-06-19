@@ -115,6 +115,17 @@ body {
 .week-column {
     display: flex;
     flex-direction: column;
+    gap: 3px;
+}
+
+.week-month-label {
+    font-size: 8px;
+    color: #666666;
+    text-transform: capitalize;
+    line-height: 10px;
+    height: 10px;
+    text-align: center;
+    margin-bottom: 1px;
 }
 
 .heatmap {
@@ -133,7 +144,6 @@ body {
     cursor: pointer;
     flex-shrink: 0;
     margin-right: 3px;   /* відступ між колонками */
-    margin-bottom: 3px;  /* відступ між рядками */
 }
 
 .day-cell.padding {
@@ -233,24 +243,6 @@ body {
 .day-cell.weekend.active {
     background: #6aa7f7;
 }
-
-.month-labels {
-    display: flex;
-    gap: 3px;
-    margin-bottom: 4px;
-    height: 12px;
-}
-
-.month-label {
-    font-size: 9px;
-    color: #666666;
-    text-transform: capitalize;
-    line-height: 12px;
-    white-space: nowrap;
-    width: 15px;
-    flex-shrink: 0;
-}
-
 
 
 .habits-actions {

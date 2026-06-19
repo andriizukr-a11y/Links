@@ -816,29 +816,21 @@ function renderHabits() {
     // Build heatmap HTML
     let heatmapHTML = '<div class="heatmap-wrapper">';
 
-    // Додаємо місячні лейбли
-    heatmapHTML += '<div class="month-labels">';
-    let currentLabelIdx = 0;
-    weeks.forEach((week, weekIdx) => {
-      if (currentLabelIdx < monthLabels.length && monthLabels[currentLabelIdx].week === weekIdx) {
-        const label = monthLabels[currentLabelIdx];
-        heatmapHTML += `<div class="month-label">${label.month}</div>`;
-        currentLabelIdx++;
-      } else {
-        // Порожній простір для вирівнювання
-        heatmapHTML += '<div class="month-label"></div>';
-      }
-    });
-    heatmapHTML += '</div>';
-
     // Оптимізація: використовуємо Set для O(1) lookup дат
     const habitDatesSet = new Set(habit.dates);
     const habitSkippedSet = new Set(habit.skippedDates || []);
 
     // Heatmap grid
     heatmapHTML += '<div class="heatmap">';
-    weeks.forEach((week) => {
+    weeks.forEach((week, weekIdx) => {
+      // Перевіряємо чи треба додати лейбл місяця для цієї колонки
+      const monthLabel = monthLabels.find(l => l.week === weekIdx)?.month || '';
+      const showLabel = monthLabel !== '';
+
       heatmapHTML += '<div class="week-column">';
+      if (showLabel) {
+        heatmapHTML += `<div class="week-month-label">${monthLabel}</div>`;
+      }
       week.forEach((cellData) => {
         const dateStr = cellData.dateStr;
         const isPadding = cellData.isPadding;
