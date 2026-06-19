@@ -32,12 +32,9 @@ function playSuccessSound() {
   });
 }
 
-function createConfetti() {
+function createConfetti(x, y) {
   const colors = ['#5b9cf5', '#4ac06a', '#ffd700', '#ff6b6b', '#a855f7'];
   const confettiCount = 30;
-  
-  const centerX = window.innerWidth / 2;
-  const centerY = window.innerHeight / 2;
   
   for (let i = 0; i < confettiCount; i++) {
     const confetti = document.createElement('div');
@@ -46,8 +43,8 @@ function createConfetti() {
       width: 10px;
       height: 10px;
       background: ${colors[Math.floor(Math.random() * colors.length)]};
-      left: ${centerX}px;
-      top: ${centerY}px;
+      left: ${x}px;
+      top: ${y}px;
       pointer-events: none;
       z-index: 1000;
       border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
@@ -60,16 +57,16 @@ function createConfetti() {
     const vx = Math.cos(angle) * velocity;
     const vy = Math.sin(angle) * velocity;
     
-    let x = 0;
-    let y = 0;
+    let offsetX = 0;
+    let offsetY = 0;
     let opacity = 1;
     
     const animate = () => {
-      x += vx;
-      y += vy + 2;
+      offsetX += vx;
+      offsetY += vy + 2;
       opacity -= 0.02;
       
-      confetti.style.transform = `translate(${x}px, ${y}px) rotate(${x * 10}deg)`;
+      confetti.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(${offsetX * 10}deg)`;
       confetti.style.opacity = opacity;
       
       if (opacity > 0) {
@@ -241,7 +238,7 @@ function deleteHabit(id) {
   renderHabits();
 }
 
-function toggleDate(habitId, dateStr) {
+function toggleDate(habitId, dateStr, event) {
   const habit = habits.find(h => h.id === habitId);
   if (!habit) return;
 
@@ -250,8 +247,48 @@ function toggleDate(habitId, dateStr) {
     habit.dates.splice(idx, 1);
   } else {
     habit.dates.push(dateStr);
+    if (habit.skippedDates) {
+      const skippedIdx = habit.skippedDates.indexOf(dateStr);
+      if (skippedIdx > -1) {
+        habit.skippedDates.splice(skippedIdx, 1);
+      }
+    }
     playSuccessSound();
-    createConfetti();
+    if (event) {
+      createConfetti(event.clientX, event.clientY);
+      if (event.target) {
+        event.target.classList.add('pulse');
+        setTimeout(() => {
+          event.target.classList.remove('pulse');
+        }, 300);
+      }
+    }
+  }
+  saveHabits();
+  // Відкладаємо перерендеринг, щоб анімація пульсації встигла відіграти
+  setTimeout(() => {
+    renderHabits();
+  }, 300);
+}
+
+function toggleSkippedDate(habitId, dateStr, event) {
+  event.preventDefault();
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit) return;
+
+  if (!habit.skippedDates) {
+    habit.skippedDates = [];
+  }
+
+  const idx = habit.skippedDates.indexOf(dateStr);
+  if (idx > -1) {
+    habit.skippedDates.splice(idx, 1);
+  } else {
+    habit.skippedDates.push(dateStr);
+    const doneIdx = habit.dates.indexOf(dateStr);
+    if (doneIdx > -1) {
+      habit.dates.splice(doneIdx, 1);
+    }
   }
   saveHabits();
   renderHabits();
@@ -439,6 +476,7 @@ function renderHabits() {
 
     // Оптимізація: використовуємо Set для O(1) lookup дат
     const habitDatesSet = new Set(habit.dates);
+    const habitSkippedSet = new Set(habit.skippedDates || []);
 
     // Heatmap grid
     heatmapHTML += '<div class="heatmap">';
@@ -447,9 +485,11 @@ function renderHabits() {
       week.forEach((dateStr) => {
         if (dateStr) {
           const isActive = habitDatesSet.has(dateStr);
+          const isSkipped = habitSkippedSet.has(dateStr);
           const isToday = dateStr === today;
-          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}"
-            onclick="toggleDate(${habit.id}, '${dateStr}')"
+          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''}"
+            onclick="toggleDate(${habit.id}, '${dateStr}', event)"
+            oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             title="${dateStr}"></div>`;
         } else {
           heatmapHTML += '<div class="day-cell empty"></div>';

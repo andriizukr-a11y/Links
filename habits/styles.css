@@ -140,7 +140,15 @@ body {
 .day-cell.active {
     background: #5b9cf5;
     border-color: #5b9cf5;
+}
+
+.day-cell.pulse {
     animation: pulse 0.3s ease-out;
+}
+
+.day-cell.skipped {
+    background: linear-gradient(135deg, #282828 45%, #f85149 45%, #f85149 55%, #282828 55%);
+    border-color: #f85149;
 }
 
 @keyframes pulse {
