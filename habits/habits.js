@@ -411,21 +411,49 @@ function toggleDate(habitId, dateStr, event) {
     playSuccessSound();
     if (event) {
       createConfetti(event.clientX, event.clientY);
-      if (event.target) {
-        event.target.classList.add('pulse');
-        setTimeout(() => {
-          event.target.classList.remove('pulse');
-        }, 300);
-      }
     }
   }
   saveHabits();
-  // Відкладаємо перерендеринг, щоб анімація пульсації встигла відіграти
-  setTimeout(() => {
-    renderHabits();
-    // Відновлюємо hover на клітинці після перерендерингу
-    restoreHover(mouseX, mouseY);
-  }, 300);
+  renderHabits();
+  // Відновлюємо hover на клітинці після перерендерингу
+  restoreHover(mouseX, mouseY);
+
+  // Додаємо анімацію pulse до новозмальованої клітинки
+  if (event && idx === -1) {
+    setTimeout(() => {
+      const heatmaps = document.querySelectorAll('.heatmap');
+      heatmaps.forEach(heatmap => {
+        const rect = heatmap.getBoundingClientRect();
+        if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
+          const cells = heatmap.querySelectorAll('.day-cell');
+          let closestCell = null;
+          let closestDistance = Infinity;
+
+          const localMouseX = mouseX - rect.left;
+          const localMouseY = mouseY - rect.top;
+
+          cells.forEach(cell => {
+            const cellRect = cell.getBoundingClientRect();
+            const cellX = cellRect.left - rect.left + cellRect.width / 2;
+            const cellY = cellRect.top - rect.top + cellRect.height / 2;
+
+            const distance = Math.sqrt(Math.pow(localMouseX - cellX, 2) + Math.pow(localMouseY - cellY, 2));
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestCell = cell;
+            }
+          });
+
+          if (closestCell && closestDistance < 20) {
+            closestCell.classList.add('pulse');
+            setTimeout(() => {
+              closestCell.classList.remove('pulse');
+            }, 300);
+          }
+        }
+      });
+    }, 0);
+  }
 }
 
 function toggleSkippedDate(habitId, dateStr, event) {
@@ -453,18 +481,49 @@ function toggleSkippedDate(habitId, dateStr, event) {
     playSkipSound();
     if (event) {
       createSkipParticles(event.clientX, event.clientY);
-      if (event.target) {
-        event.target.classList.add('shake');
-        setTimeout(() => {
-          event.target.classList.remove('shake');
-        }, 300);
-      }
     }
   }
   saveHabits();
   renderHabits();
   // Відновлюємо hover на клітинці після перерендерингу
   restoreHover(mouseX, mouseY);
+
+  // Додаємо анімацію shake до новозмальованої клітинки
+  if (event && idx === -1) {
+    setTimeout(() => {
+      const heatmaps = document.querySelectorAll('.heatmap');
+      heatmaps.forEach(heatmap => {
+        const rect = heatmap.getBoundingClientRect();
+        if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
+          const cells = heatmap.querySelectorAll('.day-cell');
+          let closestCell = null;
+          let closestDistance = Infinity;
+
+          const localMouseX = mouseX - rect.left;
+          const localMouseY = mouseY - rect.top;
+
+          cells.forEach(cell => {
+            const cellRect = cell.getBoundingClientRect();
+            const cellX = cellRect.left - rect.left + cellRect.width / 2;
+            const cellY = cellRect.top - rect.top + cellRect.height / 2;
+
+            const distance = Math.sqrt(Math.pow(localMouseX - cellX, 2) + Math.pow(localMouseY - cellY, 2));
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestCell = cell;
+            }
+          });
+
+          if (closestCell && closestDistance < 20) {
+            closestCell.classList.add('shake');
+            setTimeout(() => {
+              closestCell.classList.remove('shake');
+            }, 400);
+          }
+        }
+      });
+    }, 0);
+  }
 }
 
 function toggleToday(habitId) {
@@ -789,7 +848,8 @@ function setupHoverListeners() {
       // Прибираємо hover з попередньої клітинки
       if (hoveredCell && hoveredCell !== closestCell) {
         const isHoveredActive = hoveredCell.classList.contains('active');
-        if (!isHoveredActive) {
+        const isHoveredSkipped = hoveredCell.classList.contains('skipped');
+        if (!isHoveredActive && !isHoveredSkipped) {
           hoveredCell.style.removeProperty('border-color');
         }
         hoveredCell.style.removeProperty('transform');
@@ -800,8 +860,13 @@ function setupHoverListeners() {
       // Додаємо hover до нової клітинки
       if (closestCell && closestCell !== hoveredCell) {
         const isClosestActive = closestCell.classList.contains('active');
+        const isClosestSkipped = closestCell.classList.contains('skipped');
         if (!isClosestActive) {
-          closestCell.style.borderColor = '#8b949e';
+          if (isClosestSkipped) {
+            closestCell.style.borderColor = '#f85149';
+          } else {
+            closestCell.style.borderColor = '#8b949e';
+          }
         }
         closestCell.style.transform = 'scale(1.2)';
         closestCell.style.zIndex = '10';
@@ -820,7 +885,8 @@ function setupHoverListeners() {
     heatmap.addEventListener('mouseleave', () => {
       if (hoveredCell) {
         const isHoveredActive = hoveredCell.classList.contains('active');
-        if (!isHoveredActive) {
+        const isHoveredSkipped = hoveredCell.classList.contains('skipped');
+        if (!isHoveredActive && !isHoveredSkipped) {
           hoveredCell.style.removeProperty('border-color');
         }
         hoveredCell.style.removeProperty('transform');
@@ -865,8 +931,13 @@ function restoreHover(mouseX, mouseY) {
       // Застосовуємо hover стилі до знайденої клітинки
       if (closestCell && closestDistance < 20) {
         const isClosestActive = closestCell.classList.contains('active');
+        const isClosestSkipped = closestCell.classList.contains('skipped');
         if (!isClosestActive) {
-          closestCell.style.borderColor = '#8b949e';
+          if (isClosestSkipped) {
+            closestCell.style.borderColor = '#f85149';
+          } else {
+            closestCell.style.borderColor = '#8b949e';
+          }
         }
         closestCell.style.transform = 'scale(1.2)';
         closestCell.style.zIndex = '10';
