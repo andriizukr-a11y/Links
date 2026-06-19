@@ -243,11 +243,41 @@ function initHabits() {
     document.head.appendChild(link);
   }
 
+  // Спроба завантажити з gist при ініціалізації
+  if (habitsGistStorage.isEnabled()) {
+    habitsGistStorage.loadHabitsFromGist().then(gistHabits => {
+      if (gistHabits && gistHabits.length > 0) {
+        // Порівнюємо з локальними даними та беремо новіші
+        const localHabits = JSON.parse(localStorage.getItem('habits') || '[]');
+        if (gistHabits.length !== localHabits.length || 
+            JSON.stringify(gistHabits) !== JSON.stringify(localHabits)) {
+          habits = gistHabits;
+          localStorage.setItem('habits', JSON.stringify(habits));
+          console.log('Habits loaded from Gist');
+        }
+      }
+      habitsGistStorage.startAutoSync();
+    }).catch(err => {
+      console.error('Failed to load habits from Gist:', err);
+      habitsGistStorage.startAutoSync();
+    });
+  }
+
   // HTML content directly embedded
   const html = `
 <div class="habits-container" id="habitsContainer"></div>
 
 <div class="habits-actions">
+  <button class="export-btn" onclick="exportData()" title="Експортувати дані">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+  </button>
+  <button class="import-btn" onclick="document.getElementById('importFile').click()" title="Імпортувати дані">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+  </button>
+  <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+  <button class="sync-btn" onclick="manualSync()" title="Синхронізувати з Gist">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 5.5A10 10 0 1 1 11.26 2.25L12 5.5"></path></svg>
+  </button>
   <button class="stats-btn" onclick="openStatsModal()" title="Статистика">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
   </button>
@@ -412,6 +442,12 @@ function saveEditHabit() {
 
 function saveHabits() {
   localStorage.setItem('habits', JSON.stringify(habits));
+  // Синхронізація з gist
+  if (habitsGistStorage.isEnabled()) {
+    habitsGistStorage.updateHabitsInGist().catch(err => {
+      console.error('Gist sync error on save:', err);
+    });
+  }
 }
 
 function deleteHabit(id) {
@@ -780,6 +816,21 @@ function renderHabits() {
     // Build heatmap HTML
     let heatmapHTML = '<div class="heatmap-wrapper">';
 
+    // Додаємо місячні лейбли
+    heatmapHTML += '<div class="month-labels">';
+    let currentLabelIdx = 0;
+    weeks.forEach((week, weekIdx) => {
+      if (currentLabelIdx < monthLabels.length && monthLabels[currentLabelIdx].week === weekIdx) {
+        const label = monthLabels[currentLabelIdx];
+        heatmapHTML += `<div class="month-label">${label.month}</div>`;
+        currentLabelIdx++;
+      } else {
+        // Порожній простір для вирівнювання
+        heatmapHTML += '<div class="month-label"></div>';
+      }
+    });
+    heatmapHTML += '</div>';
+
     // Оптимізація: використовуємо Set для O(1) lookup дат
     const habitDatesSet = new Set(habit.dates);
     const habitSkippedSet = new Set(habit.skippedDates || []);
@@ -795,19 +846,26 @@ function renderHabits() {
         const isSkipped = habitSkippedSet.has(dateStr);
         const isToday = dateStr === today;
 
+        // Визначаємо день тижня для виділення вихідних
+        const d = new Date(dateStr);
+        const dayOfWeek = d.getDay(); // 0 = неділя, 6 = субота
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
         // Конвертуємо дату у формат dd.mm.yyyy для відображення
         const [year, month, day] = dateStr.split('-');
         const displayDate = `${day}.${month}`;
 
+        const weekendClass = isWeekend && !isPadding ? 'weekend' : '';
+
         if (isPadding) {
           // Клітинки з попереднього/наступного року - можна натискати, але вони з іншим стилем
-          heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''}"
+          heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${weekendClass}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
         } else {
           // Клітинки поточного року
-          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''}"
+          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''} ${weekendClass}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
@@ -834,7 +892,7 @@ function renderHabits() {
            oncontextmenu="return false;">
         <div class="habit-main">
           <div class="habit-header">
-            <div class="habit-icon">${iconSvg}</div>
+            <div class="habit-icon" onclick="openEditModal(${habit.id})">${iconSvg}</div>
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
@@ -1365,4 +1423,266 @@ function renderAnalysisTab(container) {
   html += '</div>';
   
   container.innerHTML = html;
+}
+
+// ========== EXPORT/IMPORT FUNCTIONS ==========
+
+function exportData() {
+  const data = {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    habits: habits
+  };
+
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `habits-backup-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      // Валідація даних
+      if (!data.habits || !Array.isArray(data.habits)) {
+        throw new Error('Невірний формат даних');
+      }
+
+      // Валідація структури кожної звички
+      const validHabits = data.habits.filter(habit => {
+        return habit.id && 
+               habit.name && 
+               habit.icon && 
+               Array.isArray(habit.dates);
+      });
+
+      if (validHabits.length === 0) {
+        throw new Error('Немає валідних звичок для імпорту');
+      }
+
+      // Підтвердження імпорту
+      if (confirm(`Імпортувати ${validHabits.length} звичок? Ця дія перезапише поточні дані.`)) {
+        habits = validHabits;
+        saveHabits();
+        renderHabits();
+        alert('Дані успішно імпортовано!');
+      }
+    } catch (error) {
+      alert('Помилка імпорту: ' + error.message);
+    } finally {
+      // Очищення input
+      event.target.value = '';
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+// ========== GIST STORAGE FOR HABITS ==========
+
+class HabitsGistStorage {
+  constructor() {
+    this.config = this.loadConfig();
+    this.isSyncing = false;
+    this.syncTimer = null;
+  }
+
+  loadConfig() {
+    try {
+      // Використовуємо той самий config, що й нотатки
+      const config = JSON.parse(localStorage.getItem('gist_config'));
+      return config || { token: '', gistId: '', enabled: false };
+    } catch {
+      return { token: '', gistId: '', enabled: false };
+    }
+  }
+
+  saveConfig(config) {
+    this.config = config;
+    localStorage.setItem('gist_config', JSON.stringify(config));
+  }
+
+  isEnabled() {
+    return this.config.enabled && this.config.token && this.config.gistId;
+  }
+
+  async updateHabitsInGist() {
+    if (!this.isEnabled() || this.isSyncing) {
+      return false;
+    }
+
+    this.isSyncing = true;
+
+    try {
+      const habitsData = {
+        version: '1.0',
+        habits: habits,
+        lastSync: new Date().toISOString()
+      };
+
+      // Спочатку завантажуємо поточний gist
+      const gistResponse = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
+        headers: {
+          'Authorization': `token ${this.config.token}`
+        }
+      });
+
+      if (!gistResponse.ok) {
+        throw new Error('Не вдалося завантажити gist');
+      }
+
+      const gist = await gistResponse.json();
+
+      // Оновлюємо тільки habits-data.json, зберігаючи інші файли
+      const files = { ...gist.files };
+      files['habits-data.json'] = {
+        content: JSON.stringify(habitsData, null, 2)
+      };
+
+      // Видаляємо файли, які не повинні бути в gist (notes-data.json залишаємо)
+      const updateResponse = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `token ${this.config.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ files })
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Не вдалося оновити gist');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Habits Gist sync error:', error);
+      throw error;
+    } finally {
+      this.isSyncing = false;
+    }
+  }
+
+  async loadHabitsFromGist() {
+    if (!this.isEnabled()) {
+      throw new Error('Gist синхронізація не налаштована');
+    }
+
+    try {
+      const response = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
+        headers: {
+          'Authorization': `token ${this.config.token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Не вдалося завантажити gist');
+      }
+
+      const gist = await response.json();
+      const file = gist.files['habits-data.json'];
+
+      if (!file) {
+        // Якщо файл habits не існує, створюємо його з поточними даними
+        await this.updateHabitsInGist();
+        return habits;
+      }
+
+      let content = file.content;
+
+      if (file.truncated) {
+        const rawResponse = await fetch(file.raw_url);
+        if (!rawResponse.ok) throw new Error('Не вдалося завантажити повний вміст gist');
+        content = await rawResponse.text();
+      }
+
+      const data = JSON.parse(content);
+
+      if (data.habits && Array.isArray(data.habits)) {
+        return data.habits;
+      }
+
+      throw new Error('Невірний формат даних habits');
+    } catch (error) {
+      console.error('Habits Gist load error:', error);
+      throw error;
+    }
+  }
+
+  startAutoSync() {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+    }
+
+    if (!this.isEnabled()) {
+      return;
+    }
+
+    // Синхронізація кожні 30 секунд
+    this.syncTimer = setInterval(() => {
+      this.updateHabitsInGist().catch(err => {
+        console.error('Auto-sync failed:', err);
+      });
+    }, 30000);
+  }
+
+  stopAutoSync() {
+    if (this.syncTimer) {
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
+    }
+  }
+}
+
+// Створюємо екземпляр gist storage для habits
+const habitsGistStorage = new HabitsGistStorage();
+
+function manualSync() {
+  if (!habitsGistStorage.isEnabled()) {
+    alert('Синхронізація з Gist не налаштована. Налаштуйте її в нотатках.');
+    return;
+  }
+
+  const syncBtn = document.querySelector('.sync-btn');
+  if (syncBtn) {
+    syncBtn.classList.add('syncing');
+  }
+
+  habitsGistStorage.loadHabitsFromGist()
+    .then(gistHabits => {
+      if (gistHabits && gistHabits.length > 0) {
+        const localHabits = JSON.parse(localStorage.getItem('habits') || '[]');
+        if (gistHabits.length !== localHabits.length || 
+            JSON.stringify(gistHabits) !== JSON.stringify(localHabits)) {
+          habits = gistHabits;
+          localStorage.setItem('habits', JSON.stringify(habits));
+          renderHabits();
+          alert('Дані успішно синхронізовано з Gist!');
+        } else {
+          alert('Дані вже синхронізовано.');
+        }
+      }
+      habitsGistStorage.updateHabitsInGist();
+    })
+    .catch(err => {
+      console.error('Manual sync error:', err);
+      alert('Помилка синхронізації: ' + err.message);
+    })
+    .finally(() => {
+      if (syncBtn) {
+        syncBtn.classList.remove('syncing');
+      }
+    });
 }

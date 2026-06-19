@@ -81,9 +81,9 @@ body {
 }
 
 .habit-name {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    color: #ffffff;
+    color: #f5f5f5;
 }
 
 .habit-main {
@@ -226,6 +226,14 @@ body {
     border-color: #5b9cf5;
 }
 
+.day-cell.weekend {
+    background: #2d2d2d;
+}
+
+.day-cell.weekend.active {
+    background: #6aa7f7;
+}
+
 .month-labels {
     display: flex;
     gap: 3px;
@@ -234,11 +242,13 @@ body {
 }
 
 .month-label {
-    font-size: 10px;
+    font-size: 9px;
     color: #666666;
     text-transform: capitalize;
     line-height: 12px;
     white-space: nowrap;
+    width: 15px;
+    flex-shrink: 0;
 }
 
 
@@ -250,6 +260,81 @@ body {
     display: flex;
     gap: 12px;
     z-index: 100;
+}
+
+.export-btn,
+.import-btn {
+    width: 48px;
+    height: 48px;
+    background: #282828;
+    border: none;
+    border-radius: 50%;
+    color: #999999;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.15s;
+}
+
+.export-btn svg,
+.import-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+}
+
+.export-btn:hover,
+.import-btn:hover {
+    transform: scale(1.1);
+    color: #4ac06a;
+}
+
+.import-btn:hover {
+    color: #5b9cf5;
+}
+
+.sync-btn {
+    width: 48px;
+    height: 48px;
+    background: #282828;
+    border: none;
+    border-radius: 50%;
+    color: #999999;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.15s;
+}
+
+.sync-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+}
+
+.sync-btn:hover {
+    transform: scale(1.1);
+    color: #5b9cf5;
+}
+
+.sync-btn.syncing {
+    animation: sync-spin 1s linear infinite;
+    color: #5b9cf5;
+}
+
+@keyframes sync-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .stats-btn {
