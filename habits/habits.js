@@ -9,6 +9,80 @@ let draggedHabitId = null;
 let cachedYearDates = null;
 let cachedYear = null;
 
+function playSuccessSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  const frequencies = [523.25, 659.25, 783.99];
+  frequencies.forEach((freq, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = freq;
+    oscillator.type = 'sine';
+    
+    const startTime = audioContext.currentTime + (index * 0.1);
+    gainNode.gain.setValueAtTime(0.2, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.2);
+  });
+}
+
+function createConfetti() {
+  const colors = ['#5b9cf5', '#4ac06a', '#ffd700', '#ff6b6b', '#a855f7'];
+  const confettiCount = 30;
+  
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  
+  for (let i = 0; i < confettiCount; i++) {
+    const confetti = document.createElement('div');
+    confetti.style.cssText = `
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      left: ${centerX}px;
+      top: ${centerY}px;
+      pointer-events: none;
+      z-index: 1000;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+    `;
+    
+    document.body.appendChild(confetti);
+    
+    const angle = (Math.random() * 360) * (Math.PI / 180);
+    const velocity = 5 + Math.random() * 5;
+    const vx = Math.cos(angle) * velocity;
+    const vy = Math.sin(angle) * velocity;
+    
+    let x = 0;
+    let y = 0;
+    let opacity = 1;
+    
+    const animate = () => {
+      x += vx;
+      y += vy + 2;
+      opacity -= 0.02;
+      
+      confetti.style.transform = `translate(${x}px, ${y}px) rotate(${x * 10}deg)`;
+      confetti.style.opacity = opacity;
+      
+      if (opacity > 0) {
+        requestAnimationFrame(animate);
+      } else {
+        confetti.remove();
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }
+}
+
 function initHabits() {
   const output = document.getElementById('output-habits');
   if (!output) return;
@@ -176,6 +250,8 @@ function toggleDate(habitId, dateStr) {
     habit.dates.splice(idx, 1);
   } else {
     habit.dates.push(dateStr);
+    playSuccessSound();
+    createConfetti();
   }
   saveHabits();
   renderHabits();
