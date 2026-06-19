@@ -681,16 +681,16 @@ body {
     color: #555;
     cursor: pointer;
     font-size: 10px;
-    margin-top: -5px;
+    margin-top: 5px;
     margin-right: -5px;
-    margin-left: auto;
-    padding: 4px;
     opacity: 0;
     transition: all 0.15s;
+    position: absolute;
+    left: 10px
 }
 
 .habit-header:hover .delete-btn {
-    opacity: 1;
+    opacity: 0;
 }
 
 .delete-btn:hover {
@@ -1100,10 +1100,9 @@ body {
   display: flex;
   align-items: center;
   margin-left: auto;
-  margin-right: -22px;
+  margin-right: -4px;
   font-size: 16px;
-  border-radius: 12px;
-  opacity: 0.4;
+  opacity: 0.9;
 }
 
 .streak-badge svg {
