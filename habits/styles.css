@@ -56,7 +56,6 @@ body {
 
 .habit-card.dragging {
     opacity: 0.5;
-    cursor: move;
 }
 
 .habit-card.drag-over {
@@ -83,6 +82,7 @@ body {
     justify-content: center;
     font-size: 20px;
     color: #e8e8e8;
+    cursor: pointer;
 }
 
 .habit-icon svg {
