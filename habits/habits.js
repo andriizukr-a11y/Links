@@ -554,7 +554,7 @@ function initHabits() {
     <div class="reminder-settings">
       <label class="reminder-toggle">
         <input type="checkbox" id="reminderEnabled" onchange="toggleReminderTimeInput('reminderEnabled', 'reminderTime')">
-        <span>🔔 Нагадування</span>
+        <span>Нагадування</span>
       </label>
       <input type="time" id="reminderTime" class="reminder-time-input" style="display: none;" value="09:00">
     </div>
@@ -573,7 +573,7 @@ function initHabits() {
     <div class="reminder-settings">
       <label class="reminder-toggle">
         <input type="checkbox" id="editReminderEnabled" onchange="toggleReminderTimeInput('editReminderEnabled', 'editReminderTime')">
-        <span>🔔 Нагадування</span>
+        <span>Нагадування</span>
       </label>
       <input type="time" id="editReminderTime" class="reminder-time-input" style="display: none;" value="09:00">
     </div>
