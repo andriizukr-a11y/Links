@@ -232,6 +232,107 @@ function createSkipParticles(x, y) {
   }
 }
 
+// ========== NOTIFICATION FUNCTIONS ==========
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.log('Цей браузер не підтримує сповіщення');
+    return false;
+  }
+
+  if (Notification.permission === 'granted') {
+    return true;
+  }
+
+  if (Notification.permission !== 'denied') {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+
+  return false;
+}
+
+function sendHabitReminder(habit) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    return;
+  }
+
+  const today = getLocalDateStr();
+  const isAlreadyDone = habit.dates.includes(today);
+  const isAlreadySkipped = habit.skippedDates && habit.skippedDates.includes(today);
+
+  if (isAlreadyDone || isAlreadySkipped) {
+    return; // Не відправляти нагадування, якщо вже виконано або пропущено сьогодні
+  }
+
+  const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || '';
+  
+  const notification = new Notification(`🔔 Нагадування: ${habit.name}`, {
+    body: 'Час виконати вашу звичку!',
+    icon: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(iconSvg)}`,
+    tag: `habit-${habit.id}-${today}`,
+    requireInteraction: true
+  });
+
+  notification.onclick = function() {
+    window.focus();
+    notification.close();
+  };
+}
+
+function checkReminders() {
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const today = getLocalDateStr();
+
+  habits.forEach(habit => {
+    if (habit.reminderEnabled && habit.reminderTime === currentTime) {
+      sendHabitReminder(habit);
+    }
+  });
+}
+
+let reminderCheckInterval = null;
+
+function startReminderChecker() {
+  if (reminderCheckInterval) {
+    clearInterval(reminderCheckInterval);
+  }
+  
+  // Перевіряємо кожну хвилину
+  reminderCheckInterval = setInterval(checkReminders, 60000);
+  
+  // Також перевіряємо одразу при старті
+  checkReminders();
+}
+
+function stopReminderChecker() {
+  if (reminderCheckInterval) {
+    clearInterval(reminderCheckInterval);
+    reminderCheckInterval = null;
+  }
+}
+
+async function testNotification() {
+  const hasPermission = await requestNotificationPermission();
+  
+  if (!hasPermission) {
+    alert('Будь ласка, надайте дозвіл на сповіщення в налаштуваннях браузера');
+    return;
+  }
+
+  const testNotification = new Notification('🔔 Тест сповіщень', {
+    body: 'Сповіщення працюють коректно!',
+    icon: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="%235b9cf5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>'),
+    requireInteraction: true
+  });
+
+  testNotification.onclick = function() {
+    window.focus();
+    testNotification.close();
+  };
+}
+
 function initHabits() {
   const output = document.getElementById('output-habits');
   if (!output) return;
@@ -264,6 +365,15 @@ function initHabits() {
     });
   }
 
+  // Запускаємо перевірку нагадувань
+  startReminderChecker();
+  
+  // Перевіряємо, чи є звички з увімкненими нагадуваннями
+  const hasReminderEnabled = habits.some(h => h.reminderEnabled);
+  if (hasReminderEnabled) {
+    requestNotificationPermission();
+  }
+
   // HTML content directly embedded
   const html = `
 <div class="habits-container" id="habitsContainer"></div>
@@ -282,6 +392,9 @@ function initHabits() {
   <button class="stats-btn" onclick="openStatsModal()" title="Статистика">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
   </button>
+  <button class="notification-btn" onclick="testNotification()" title="Тест сповіщень">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+  </button>
   <button class="add-btn" onclick="openModal()">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
   </button>
@@ -292,6 +405,13 @@ function initHabits() {
     <h3>Нова звичка</h3>
     <input type="text" id="habitName" placeholder="наприклад, Спорт" maxlength="30">
     <div class="icon-picker" id="iconPicker"></div>
+    <div class="reminder-settings">
+      <label class="reminder-toggle">
+        <input type="checkbox" id="reminderEnabled" onchange="toggleReminderTimeInput('reminderEnabled', 'reminderTime')">
+        <span>🔔 Нагадування</span>
+      </label>
+      <input type="time" id="reminderTime" class="reminder-time-input" style="display: none;" value="09:00">
+    </div>
     <div class="modal-buttons">
       <button class="modal-btn cancel" onclick="closeModal()">Скасувати</button>
       <button class="modal-btn save" onclick="saveHabit()">Зберегти</button>
@@ -304,6 +424,13 @@ function initHabits() {
     <h3>Редагувати звичку</h3>
     <input type="text" id="editHabitName" placeholder="наприклад, Спорт" maxlength="30">
     <div class="icon-picker" id="editIconPicker"></div>
+    <div class="reminder-settings">
+      <label class="reminder-toggle">
+        <input type="checkbox" id="editReminderEnabled" onchange="toggleReminderTimeInput('editReminderEnabled', 'editReminderTime')">
+        <span>🔔 Нагадування</span>
+      </label>
+      <input type="time" id="editReminderTime" class="reminder-time-input" style="display: none;" value="09:00">
+    </div>
     <div class="modal-buttons">
       <button class="modal-btn cancel" onclick="closeEditModal()">Скасувати</button>
       <button class="modal-btn save" onclick="saveEditHabit()">Зберегти</button>
@@ -353,6 +480,19 @@ function initHabits() {
   document.getElementById('editModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeEditModal();
   });
+
+  // Додамо event listeners для кнопки плюс
+  const addBtn = document.querySelector('.add-btn');
+  const habitsActions = document.querySelector('.habits-actions');
+  if (addBtn && habitsActions) {
+    addBtn.addEventListener('mouseenter', () => {
+      habitsActions.classList.add('show-actions');
+    });
+
+    habitsActions.addEventListener('mouseleave', () => {
+      habitsActions.classList.remove('show-actions');
+    });
+  }
   document.getElementById('statsModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeStatsModal();
   });
@@ -397,9 +537,25 @@ function selectEditIcon(iconId) {
   renderEditIconPicker();
 }
 
+function toggleReminderTimeInput(checkboxId, timeInputId) {
+  const checkbox = document.getElementById(checkboxId);
+  const timeInput = document.getElementById(timeInputId);
+  
+  if (checkbox.checked) {
+    timeInput.style.display = 'block';
+    // Запитуємо дозвіл на сповіщення при ввімкненні нагадувань
+    requestNotificationPermission();
+  } else {
+    timeInput.style.display = 'none';
+  }
+}
+
 function openModal() {
   document.getElementById('modal').classList.add('open');
   document.getElementById('habitName').value = '';
+  document.getElementById('reminderEnabled').checked = false;
+  document.getElementById('reminderTime').style.display = 'none';
+  document.getElementById('reminderTime').value = '09:00';
   document.getElementById('habitName').focus();
 }
 
@@ -414,6 +570,17 @@ function openEditModal(habitId) {
   editSelectedIcon = ICONS.find(icon => icon.id === habit.icon) || ICONS[0];
   document.getElementById('editHabitName').value = habit.name;
   renderEditIconPicker();
+  
+  // Встановлюємо значення нагадувань
+  document.getElementById('editReminderEnabled').checked = habit.reminderEnabled || false;
+  document.getElementById('editReminderTime').value = habit.reminderTime || '09:00';
+  
+  if (habit.reminderEnabled) {
+    document.getElementById('editReminderTime').style.display = 'block';
+  } else {
+    document.getElementById('editReminderTime').style.display = 'none';
+  }
+  
   document.getElementById('editModal').classList.add('open');
   document.getElementById('editHabitName').focus();
 }
@@ -445,11 +612,16 @@ function saveHabit() {
   const name = document.getElementById('habitName').value.trim();
   if (!name) return;
 
+  const reminderEnabled = document.getElementById('reminderEnabled').checked;
+  const reminderTime = document.getElementById('reminderTime').value;
+
   const habit = {
     id: Date.now(),
     name,
     icon: selectedIcon.id,
-    dates: [getLocalDateStr()]
+    dates: [getLocalDateStr()],
+    reminderEnabled,
+    reminderTime: reminderEnabled ? reminderTime : null
   };
 
   habits.push(habit);
@@ -466,6 +638,13 @@ function saveEditHabit() {
   if (habit) {
     habit.name = name;
     habit.icon = editSelectedIcon.id;
+    
+    const reminderEnabled = document.getElementById('editReminderEnabled').checked;
+    const reminderTime = document.getElementById('editReminderTime').value;
+    
+    habit.reminderEnabled = reminderEnabled;
+    habit.reminderTime = reminderEnabled ? reminderTime : null;
+    
     saveHabits();
   }
   closeEditModal();
