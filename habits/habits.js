@@ -80,6 +80,79 @@ function createConfetti(x, y) {
   }
 }
 
+function playSkipSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  const frequencies = [392.00, 349.23, 329.63];
+  frequencies.forEach((freq, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = freq;
+    oscillator.type = 'sine';
+    
+    const startTime = audioContext.currentTime + (index * 0.1);
+    gainNode.gain.setValueAtTime(0.15, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+    
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.2);
+  });
+}
+
+function createSkipParticles(x, y) {
+  const colors = ['#f85149', '#ff6b6b', '#cc3b33', '#e5534b'];
+  const particleCount = 20;
+  
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.style.cssText = `
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      left: ${x}px;
+      top: ${y}px;
+      pointer-events: none;
+      z-index: 1000;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+    `;
+    
+    document.body.appendChild(particle);
+    
+    const angle = (Math.random() * 360) * (Math.PI / 180);
+    const velocity = 3 + Math.random() * 4;
+    const vx = Math.cos(angle) * velocity;
+    const vy = Math.sin(angle) * velocity;
+    
+    let offsetX = 0;
+    let offsetY = 0;
+    let opacity = 1;
+    let rotation = 0;
+    
+    const animate = () => {
+      offsetX += vx;
+      offsetY += vy + 3;
+      rotation += 10;
+      opacity -= 0.025;
+      
+      particle.style.transform = `translate(${offsetX}px, ${offsetY}px) rotate(${rotation}deg)`;
+      particle.style.opacity = opacity;
+      
+      if (opacity > 0) {
+        requestAnimationFrame(animate);
+      } else {
+        particle.remove();
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }
+}
+
 function initHabits() {
   const output = document.getElementById('output-habits');
   if (!output) return;
@@ -289,6 +362,16 @@ function toggleSkippedDate(habitId, dateStr, event) {
     if (doneIdx > -1) {
       habit.dates.splice(doneIdx, 1);
     }
+    playSkipSound();
+    if (event) {
+      createSkipParticles(event.clientX, event.clientY);
+      if (event.target) {
+        event.target.classList.add('shake');
+        setTimeout(() => {
+          event.target.classList.remove('shake');
+        }, 300);
+      }
+    }
   }
   saveHabits();
   renderHabits();
@@ -408,6 +491,7 @@ function renderHabits() {
     return;
   }
 
+  const currentYear = new Date().getFullYear();
   const yearDates = getYearDates();
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -416,10 +500,12 @@ function renderHabits() {
   // Оптимізація: обчислюємо загальні дані один раз для всіх звичок
   const daysGrid = yearDates.map(dateStr => {
     const d = new Date(dateStr);
-    const dayOfWeek = d.getDay();
+    const dayOfWeek = d.getDay(); // 0 = неділя, 1 = понеділок, ..., 6 = субота
+    // Конвертуємо в систему де 0 = понеділок, 6 = неділя
+    const adjustedDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     return {
       dateStr,
-      dayOfWeek: dayOfWeek === 0 ? 6 : dayOfWeek - 1,
+      dayOfWeek: adjustedDayOfWeek,
       month: d.getMonth()
     };
   });
@@ -428,16 +514,39 @@ function renderHabits() {
   const lastDayOffset = daysGrid[daysGrid.length - 1].dayOfWeek;
   const endPadding = 6 - lastDayOffset;
 
+  // Генеруємо дати з попереднього року для заповнення початку
+  const previousYearDates = [];
+  if (firstDayOffset > 0) {
+    const prevYear = currentYear - 1;
+    const prevYearEnd = new Date(prevYear, 11, 31);
+    // Йдемо назад від останнього дня попереднього року в правильному порядку
+    for (let i = 0; i < firstDayOffset; i++) {
+      const d = new Date(prevYearEnd);
+      d.setDate(d.getDate() - (firstDayOffset - 1 - i));
+      previousYearDates.push(d.toISOString().split('T')[0]);
+    }
+  }
+
+  // Генеруємо дати з наступного року для заповнення кінця
+  const nextYearDates = [];
+  if (endPadding > 0) {
+    const nextYear = currentYear + 1;
+    const nextYearStart = new Date(nextYear, 0, 1);
+    // Йдемо вперед від першого дня наступного року
+    for (let i = 0; i < endPadding; i++) {
+      const d = new Date(nextYearStart);
+      d.setDate(d.getDate() + i);
+      nextYearDates.push(d.toISOString().split('T')[0]);
+    }
+  }
+
   const allCells = [];
-  for (let i = 0; i < firstDayOffset; i++) {
-    allCells.push(null);
-  }
-  daysGrid.forEach(day => {
-    allCells.push(day.dateStr);
-  });
-  for (let i = 0; i < endPadding; i++) {
-    allCells.push(null);
-  }
+  // Додаємо дати з попереднього року
+  previousYearDates.forEach(date => allCells.push({ dateStr: date, isPadding: true }));
+  // Додаємо дати поточного року
+  daysGrid.forEach(day => allCells.push({ dateStr: day.dateStr, isPadding: false }));
+  // Додаємо дати з наступного року
+  nextYearDates.forEach(date => allCells.push({ dateStr: date, isPadding: true }));
 
   const weeks = [];
   for (let i = 0; i < allCells.length; i += 7) {
@@ -482,17 +591,25 @@ function renderHabits() {
     heatmapHTML += '<div class="heatmap">';
     weeks.forEach((week) => {
       heatmapHTML += '<div class="week-column">';
-      week.forEach((dateStr) => {
-        if (dateStr) {
-          const isActive = habitDatesSet.has(dateStr);
-          const isSkipped = habitSkippedSet.has(dateStr);
-          const isToday = dateStr === today;
-          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''}"
+      week.forEach((cellData) => {
+        const dateStr = cellData.dateStr;
+        const isPadding = cellData.isPadding;
+        const isActive = habitDatesSet.has(dateStr);
+        const isSkipped = habitSkippedSet.has(dateStr);
+        const isToday = dateStr === today;
+
+        if (isPadding) {
+          // Клітинки з попереднього/наступного року - можна натискати, але вони з іншим стилем
+          heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             title="${dateStr}"></div>`;
         } else {
-          heatmapHTML += '<div class="day-cell empty"></div>';
+          // Клітинки поточного року
+          heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''}"
+            onclick="toggleDate(${habit.id}, '${dateStr}', event)"
+            oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
+            title="${dateStr}"></div>`;
         }
       });
       heatmapHTML += '</div>';
@@ -510,9 +627,11 @@ function renderHabits() {
       <div class="habit-card" draggable="true" data-habit-id="${habit.id}"
            ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)"
            ondragover="handleDragOver(event)" ondrop="handleDrop(event)"
-           ondragleave="handleDragLeave(event)">
+           ondragleave="handleDragLeave(event)"
+           oncontextmenu="return false;">
         <div class="habit-main">
           <div class="habit-header">
+            <div class="habit-icon">${habit.icon}</div>
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
@@ -521,4 +640,75 @@ function renderHabits() {
       </div>
     `;
   }).join('');
+
+  // Додаємо event listeners для hover на всі heatmap
+  setupHoverListeners();
+}
+
+function setupHoverListeners() {
+  const heatmaps = document.querySelectorAll('.heatmap');
+  heatmaps.forEach(heatmap => {
+    let hoveredCell = null;
+
+    heatmap.addEventListener('mousemove', (e) => {
+      const cells = heatmap.querySelectorAll('.day-cell');
+      if (cells.length === 0) return;
+
+      // Знаходимо найближчу клітинку до курсора
+      let closestCell = null;
+      let closestDistance = Infinity;
+
+      const rect = heatmap.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      cells.forEach(cell => {
+        const cellRect = cell.getBoundingClientRect();
+        const cellX = cellRect.left - rect.left + cellRect.width / 2;
+        const cellY = cellRect.top - rect.top + cellRect.height / 2;
+
+        const distance = Math.sqrt(Math.pow(mouseX - cellX, 2) + Math.pow(mouseY - cellY, 2));
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestCell = cell;
+        }
+      });
+
+      // Прибираємо hover з попередньої клітинки
+      if (hoveredCell && hoveredCell !== closestCell) {
+        const isHoveredActive = hoveredCell.classList.contains('active');
+        if (!isHoveredActive) {
+          hoveredCell.style.removeProperty('border-color');
+        }
+        hoveredCell.style.removeProperty('transform');
+        hoveredCell.style.removeProperty('z-index');
+        hoveredCell.style.removeProperty('position');
+      }
+
+      // Додаємо hover до нової клітинки
+      if (closestCell && closestCell !== hoveredCell) {
+        const isClosestActive = closestCell.classList.contains('active');
+        if (!isClosestActive) {
+          closestCell.style.borderColor = '#8b949e';
+        }
+        closestCell.style.transform = 'scale(1.2)';
+        closestCell.style.zIndex = '10';
+        closestCell.style.position = 'relative';
+        hoveredCell = closestCell;
+      }
+    });
+
+    heatmap.addEventListener('mouseleave', () => {
+      if (hoveredCell) {
+        const isHoveredActive = hoveredCell.classList.contains('active');
+        if (!isHoveredActive) {
+          hoveredCell.style.removeProperty('border-color');
+        }
+        hoveredCell.style.removeProperty('transform');
+        hoveredCell.style.removeProperty('z-index');
+        hoveredCell.style.removeProperty('position');
+        hoveredCell = null;
+      }
+    });
+  });
 }
