@@ -912,33 +912,15 @@ function getMonthData(dates) {
 }
 
 function getStreak(dates) {
-  if (!dates.length) return 0;
-
-  const today = getLocalDateStr();
-  const yesterday = new Date(Date.now() - 86400000);
-  const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+  if (!dates || dates.length === 0) return 0;
 
   const datesSet = new Set(dates);
-
   let streak = 0;
   let checkDate = new Date();
 
-  // Якщо сьогодні немає — перевіряємо вчора
-  if (!datesSet.has(today)) {
-    if (datesSet.has(yesterdayStr)) {
-      checkDate = yesterday;
-    } else {
-      return 0;
-    }
-  }
-
-  // Ідемо назад по днях
+  // Рахуємо тільки якщо сьогодні позначено
   while (true) {
-    const year = checkDate.getFullYear();
-    const month = String(checkDate.getMonth() + 1).padStart(2, '0');
-    const day = String(checkDate.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-
+    const dateStr = getLocalDateStr(checkDate);
     if (datesSet.has(dateStr)) {
       streak++;
       checkDate.setDate(checkDate.getDate() - 1);
@@ -946,7 +928,6 @@ function getStreak(dates) {
       break;
     }
   }
-
   return streak;
 }
 
@@ -1132,10 +1113,12 @@ function renderHabits() {
           <div class="habit-header">
             <div class="habit-icon" onclick="openEditModal(${habit.id})">${iconSvg}</div>
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
+            ${streak > 0 ? `
             <div class="streak-badge" title="Серія: ${streak} днів поспіль">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
               <span class="streak-count">${streak}</span>
             </div>
+            ` : ''}
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
           ${heatmapHTML}
