@@ -21,6 +21,7 @@ const ICONS = [
   { id: 'briefcase', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>' }
 ];
 let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+let habitToDelete = null;
 
 // Міграція старих emoji іконок на нові SVG іконки
 const emojiToIconMap = {
@@ -323,6 +324,17 @@ function initHabits() {
       <button class="modal-btn cancel" onclick="closeStatsModal()">Закрити</button>
     </div>
   </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>Підтвердження видалення</h3>
+    <p style="color: #e8e8e8; text-align: center; margin-bottom: 24px;">Ви впевнені, що хочете видалити цю звичку?</p>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="closeDeleteModal()">Скасувати</button>
+      <button class="modal-btn danger" onclick="confirmDelete()">Видалити</button>
+    </div>
+  </div>
 </div>`;
 
   output.innerHTML = html;
@@ -411,6 +423,24 @@ function closeEditModal() {
   editingHabitId = null;
 }
 
+function openDeleteModal(habitId) {
+  habitToDelete = habitId;
+  document.getElementById('deleteModal').classList.add('open');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('open');
+  habitToDelete = null;
+}
+
+function confirmDelete() {
+  if (habitToDelete === null) return;
+  habits = habits.filter(h => h.id !== habitToDelete);
+  saveHabits();
+  renderHabits();
+  closeDeleteModal();
+}
+
 function saveHabit() {
   const name = document.getElementById('habitName').value.trim();
   if (!name) return;
@@ -453,25 +483,19 @@ function saveHabits() {
 }
 
 function deleteHabit(id) {
-  if (!confirm('Видалити цю звичку?')) return;
-  habits = habits.filter(h => h.id !== id);
-  saveHabits();
-  renderHabits();
+  openDeleteModal(id);
 }
 
 function handleHabitDragStart(event) {
-  console.log('handleHabitDragStart called');
-  const card = event.target.closest('.habit-card');
-  console.log('card:', card);
+  const handle = event.target.closest('.habit-drag-handle');
+  const card = handle ? handle.closest('.habit-card') : event.target.closest('.habit-card');
   if (!card) return;
   draggedHabitId = parseInt(card.dataset.habitId);
-  console.log('draggedHabitId:', draggedHabitId);
   card.classList.add('dragging');
   event.dataTransfer.effectAllowed = 'move';
 }
 
 function handleHabitDragEnd(event) {
-  console.log('handleHabitDragEnd called');
   const card = event.target.closest('.habit-card');
   if (card) {
     card.classList.remove('dragging');
@@ -482,7 +506,6 @@ function handleHabitDragEnd(event) {
 }
 
 function handleHabitDragOver(event) {
-  console.log('handleHabitDragOver called');
   event.preventDefault();
   event.dataTransfer.dropEffect = 'move';
   const card = event.target.closest('.habit-card');
@@ -492,7 +515,6 @@ function handleHabitDragOver(event) {
 }
 
 function handleHabitDragLeave(event) {
-  console.log('handleHabitDragLeave called');
   const card = event.target.closest('.habit-card');
   if (card) {
     card.classList.remove('drag-over');
@@ -500,13 +522,11 @@ function handleHabitDragLeave(event) {
 }
 
 function handleHabitDrop(event) {
-  console.log('handleHabitDrop called');
   event.preventDefault();
   const card = event.target.closest('.habit-card');
   if (!card) return;
 
   const targetHabitId = parseInt(card.dataset.habitId);
-  console.log('targetHabitId:', targetHabitId, 'draggedHabitId:', draggedHabitId);
   if (targetHabitId === draggedHabitId) return;
 
   const draggedIndex = habits.findIndex(h => h.id === draggedHabitId);
@@ -910,15 +930,16 @@ function renderHabits() {
     const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || ICONS[0].svg;
 
     return `
-      <div class="habit-card" draggable="true" data-habit-id="${habit.id}"
-           ondragstart="handleHabitDragStart(event)" ondragend="handleHabitDragEnd(event)"
+      <div class="habit-card" data-habit-id="${habit.id}"
            ondragover="handleHabitDragOver(event)" ondrop="handleHabitDrop(event)"
            ondragleave="handleHabitDragLeave(event)"
            oncontextmenu="return false;">
+        <div class="habit-drag-handle" draggable="true"
+             ondragstart="handleHabitDragStart(event)" ondragend="handleHabitDragEnd(event)">⋮⋮</div>
         <div class="habit-main">
           <div class="habit-header">
-            <div class="habit-icon" onclick="if (!draggedHabitId) openEditModal(${habit.id})">${iconSvg}</div>
-            <div class="habit-name" onclick="if (!draggedHabitId) openEditModal(${habit.id})">${habit.name}</div>
+            <div class="habit-icon" onclick="openEditModal(${habit.id})">${iconSvg}</div>
+            <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
             <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
           ${heatmapHTML}

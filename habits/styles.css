@@ -51,8 +51,31 @@ body {
     display: flex;
     align-items: flex-start;
     gap: 20px;
-    cursor: move;
+    position: relative;
     user-select: none;
+}
+
+.habit-drag-handle {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666666;
+    cursor: move;
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+    user-select: none;
+}
+
+.habit-drag-handle:hover {
+    opacity: 1;
 }
 
 .habit-card.dragging {
@@ -89,7 +112,6 @@ body {
 
 .habit-icon:hover {
     background: #333333;
-    transform: scale(1.05);
 }
 
 .habit-icon svg {
@@ -102,16 +124,12 @@ body {
     font-size: 18px;
     font-weight: 600;
     color: #f5f5f5;
-    cursor: pointer;
     transition: all 0.15s;
 }
 
 .habit-name:hover {
-    color: #5b9cf5;
-    text-decoration: underline;
-    text-decoration-color: #5b9cf5;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 3px;
+    opacity: 0.8;
+    cursor: pointer;
 }
 
 .habit-main {
@@ -262,6 +280,12 @@ body {
     display: flex;
     gap: 12px;
     z-index: 100;
+    opacity: 0.2;
+    transition: opacity 0.3s ease;
+}
+
+.habits-actions:hover {
+    opacity: 1;
 }
 
 .export-btn,
@@ -520,13 +544,24 @@ body {
     background: #4a8ae8;
 }
 
+.modal-btn.danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.modal-btn.danger:hover {
+    background: #c0392b;
+}
+
 .delete-btn {
     background: none;
     border: none;
     color: #555;
     cursor: pointer;
     font-size: 10px;
-    margin-top: 5px;
+    margin-left: auto;
+    margin-right: -8px;
+    padding: 4px;
     opacity: 0;
     transition: all 0.15s;
 }
