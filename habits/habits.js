@@ -459,16 +459,19 @@ function deleteHabit(id) {
   renderHabits();
 }
 
-function handleDragStart(event) {
+function handleHabitDragStart(event) {
+  console.log('handleHabitDragStart called');
   const card = event.target.closest('.habit-card');
+  console.log('card:', card);
   if (!card) return;
   draggedHabitId = parseInt(card.dataset.habitId);
+  console.log('draggedHabitId:', draggedHabitId);
   card.classList.add('dragging');
   event.dataTransfer.effectAllowed = 'move';
-  event.preventDefault();
 }
 
-function handleDragEnd(event) {
+function handleHabitDragEnd(event) {
+  console.log('handleHabitDragEnd called');
   const card = event.target.closest('.habit-card');
   if (card) {
     card.classList.remove('dragging');
@@ -478,7 +481,8 @@ function handleDragEnd(event) {
   });
 }
 
-function handleDragOver(event) {
+function handleHabitDragOver(event) {
+  console.log('handleHabitDragOver called');
   event.preventDefault();
   event.dataTransfer.dropEffect = 'move';
   const card = event.target.closest('.habit-card');
@@ -487,19 +491,22 @@ function handleDragOver(event) {
   }
 }
 
-function handleDragLeave(event) {
+function handleHabitDragLeave(event) {
+  console.log('handleHabitDragLeave called');
   const card = event.target.closest('.habit-card');
   if (card) {
     card.classList.remove('drag-over');
   }
 }
 
-function handleDrop(event) {
+function handleHabitDrop(event) {
+  console.log('handleHabitDrop called');
   event.preventDefault();
   const card = event.target.closest('.habit-card');
   if (!card) return;
 
   const targetHabitId = parseInt(card.dataset.habitId);
+  console.log('targetHabitId:', targetHabitId, 'draggedHabitId:', draggedHabitId);
   if (targetHabitId === draggedHabitId) return;
 
   const draggedIndex = habits.findIndex(h => h.id === draggedHabitId);
@@ -904,9 +911,9 @@ function renderHabits() {
 
     return `
       <div class="habit-card" draggable="true" data-habit-id="${habit.id}"
-           ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)"
-           ondragover="handleDragOver(event)" ondrop="handleDrop(event)"
-           ondragleave="handleDragLeave(event)"
+           ondragstart="handleHabitDragStart(event)" ondragend="handleHabitDragEnd(event)"
+           ondragover="handleHabitDragOver(event)" ondrop="handleHabitDrop(event)"
+           ondragleave="handleHabitDragLeave(event)"
            oncontextmenu="return false;">
         <div class="habit-main">
           <div class="habit-header">

@@ -288,14 +288,14 @@ body {
     stroke: currentColor;
 }
 
-.export-btn:hover,
-.import-btn:hover {
+.export-btn:hover {
     transform: scale(1.1);
     color: #4ac06a;
 }
 
 .import-btn:hover {
-    color: #5b9cf5;
+    transform: scale(1.1);
+    color: #f5a623;
 }
 
 .sync-btn {
@@ -322,7 +322,7 @@ body {
 
 .sync-btn:hover {
     transform: scale(1.1);
-    color: #5b9cf5;
+    color: #9b59b6;
 }
 
 .sync-btn.syncing {
@@ -363,7 +363,7 @@ body {
 
 .stats-btn:hover {
     transform: scale(1.1);
-    color: #5b9cf5;
+    color: #e74c3c;
 }
 
 .add-btn {
@@ -389,7 +389,8 @@ body {
 }
 
 .add-btn:hover {
-    transform: scale(1.2);
+    transform: scale(1.1);
+    color: #1abc9c;
 }
 
 .modal-overlay {
