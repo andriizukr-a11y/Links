@@ -54,15 +54,16 @@
 }
 
 .reminder-indicator {
-    width: 12px;
-    height: 12px;
-    margin-left: 2px;
+    width: 14px;
+    height: 14px;
+    margin-left: 3px;
     margin-right: 4px;
     opacity: 0.3;
     transition: opacity 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
+    align-self: center;
 }
 
 .reminder-indicator svg {
