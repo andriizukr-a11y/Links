@@ -337,3 +337,25 @@ function handleDragEnd(e) {
   document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('drag-over'));
   draggedTab = null;
 }
+
+/* ---------- PAGE VISIBILITY API ДЛЯ СИНХРОНІЗАЦІЇ ПРИ ЗАКРИТТІ ВКЛАДКИ ---------- */
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // Синхронізуємо notes при закритті вкладки
+    if (typeof gistStorage !== 'undefined' && gistStorage.isEnabled() && gistStorage.pendingChanges) {
+      console.log('Syncing notes on page hide');
+      gistStorage.syncToGist().catch(err => {
+        console.error('Notes sync on page hide failed:', err);
+      });
+    }
+
+    // Синхронізуємо habits при закритті вкладки
+    if (typeof habitsGistStorage !== 'undefined' && habitsGistStorage.isEnabled() && habitsGistStorage.pendingChanges) {
+      console.log('Syncing habits on page hide');
+      habitsGistStorage.updateHabitsInGist().catch(err => {
+        console.error('Habits sync on page hide failed:', err);
+      });
+    }
+  }
+});

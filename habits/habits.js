@@ -21,8 +21,22 @@ const ICONS = [
   { id: 'briefcase', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>' },
   { id: 'egg', svg: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-egg-icon lucide-egg"><path d="M12 2C8 2 4 8 4 14a8 8 0 0 0 16 0c0-6-4-12-8-12"/></svg>' },
 ];
-let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+let habits = [];
 let habitToDelete = null;
+
+// Перевіряємо цілісність даних при завантаженні
+try {
+  const stored = localStorage.getItem('habits');
+  if (stored) {
+    const parsed = JSON.parse(stored);
+    if (Array.isArray(parsed)) {
+      habits = parsed;
+    }
+  }
+} catch (e) {
+  console.error('Error loading habits from localStorage:', e);
+  habits = [];
+}
 
 // Міграція старих emoji іконок на нові SVG іконки
 const emojiToIconMap = {
@@ -48,6 +62,10 @@ const emojiToIconMap = {
 habits = habits.map(habit => {
   if (typeof habit.icon === 'string' && emojiToIconMap[habit.icon]) {
     return { ...habit, icon: emojiToIconMap[habit.icon] };
+  }
+  // Додаємо halfDates якщо його немає
+  if (!habit.halfDates) {
+    return { ...habit, halfDates: [] };
   }
   return habit;
 });
@@ -599,7 +617,21 @@ function saveEditHabit() {
 }
 
 function saveHabits() {
-  localStorage.setItem('habits', JSON.stringify(habits));
+  try {
+    const data = JSON.stringify(habits);
+    localStorage.setItem('habits', data);
+    // Перевіряємо, що дані реально збережені
+    const saved = localStorage.getItem('habits');
+    if (saved !== data) {
+      console.error('Habits save verification failed');
+      // Пробуємо ще раз
+      localStorage.setItem('habits', data);
+    } else {
+      console.log('Habits saved successfully, total habits:', habits.length);
+    }
+  } catch (e) {
+    console.error('Error saving habits to localStorage:', e);
+  }
   // Синхронізація з gist через debounce
   if (habitsGistStorage.isEnabled()) {
     habitsGistStorage.markPendingChanges();
@@ -698,6 +730,7 @@ function toggleDate(habitId, dateStr, event) {
       createConfetti(event.clientX, event.clientY);
     }
   }
+  // Зберігаємо негайно і переконуємося, що запис завершився
   saveHabits();
   renderHabits();
   // Відновлюємо hover на клітинці після перерендерингу
@@ -769,6 +802,7 @@ function toggleSkippedDate(habitId, dateStr, event) {
       createSkipParticles(event.clientX, event.clientY);
     }
   }
+  // Зберігаємо негайно і переконуємося, що запис завершився
   saveHabits();
   renderHabits();
   // Відновлюємо hover на клітинці після перерендерингу
@@ -805,6 +839,86 @@ function toggleSkippedDate(habitId, dateStr, event) {
             setTimeout(() => {
               closestCell.classList.remove('shake');
             }, 400);
+          }
+        }
+      });
+    }, 0);
+  }
+}
+
+function toggleHalfDate(habitId, dateStr, event) {
+  event.preventDefault();
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit) return;
+
+  // Зберігаємо поточну позицію миші для відновлення hover
+  const mouseX = event ? event.clientX : 0;
+  const mouseY = event ? event.clientY : 0;
+
+  // Переконуємося, що halfDates існує
+  if (!habit.halfDates) {
+    habit.halfDates = [];
+  }
+
+  const idx = habit.halfDates.indexOf(dateStr);
+  if (idx > -1) {
+    habit.halfDates.splice(idx, 1);
+    playUncheckSound();
+  } else {
+    habit.halfDates.push(dateStr);
+    // Видаляємо з повних дат, якщо є
+    const fullIdx = habit.dates.indexOf(dateStr);
+    if (fullIdx > -1) {
+      habit.dates.splice(fullIdx, 1);
+    }
+    // Видаляємо з пропущених дат, якщо є
+    if (habit.skippedDates) {
+      const skippedIdx = habit.skippedDates.indexOf(dateStr);
+      if (skippedIdx > -1) {
+        habit.skippedDates.splice(skippedIdx, 1);
+      }
+    }
+    playSuccessSound();
+    if (event) {
+      createConfetti(event.clientX, event.clientY);
+    }
+  }
+  saveHabits();
+  renderHabits();
+  // Відновлюємо hover на клітинці після перерендерингу
+  restoreHover(mouseX, mouseY);
+
+  // Додаємо анімацію pulse до новозмальованої клітинки
+  if (event && idx === -1) {
+    setTimeout(() => {
+      const heatmaps = document.querySelectorAll('.heatmap');
+      heatmaps.forEach(heatmap => {
+        const rect = heatmap.getBoundingClientRect();
+        if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
+          const cells = heatmap.querySelectorAll('.day-cell');
+          let closestCell = null;
+          let closestDistance = Infinity;
+
+          const localMouseX = mouseX - rect.left;
+          const localMouseY = mouseY - rect.top;
+
+          cells.forEach(cell => {
+            const cellRect = cell.getBoundingClientRect();
+            const cellX = cellRect.left - rect.left + cellRect.width / 2;
+            const cellY = cellRect.top - rect.top + cellRect.height / 2;
+
+            const distance = Math.sqrt(Math.pow(localMouseX - cellX, 2) + Math.pow(localMouseY - cellY, 2));
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestCell = cell;
+            }
+          });
+
+          if (closestCell && closestDistance < 20) {
+            closestCell.classList.add('pulse');
+            setTimeout(() => {
+              closestCell.classList.remove('pulse');
+            }, 300);
           }
         }
       });
@@ -1032,12 +1146,14 @@ function renderHabits() {
           heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
+            onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
         } else {
           // Клітинки поточного року
         heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}"
           onclick="toggleDate(${habit.id}, '${dateStr}', event)"
           oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
+          onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
           data-date="${displayDate}"></div>`;
         }
       });

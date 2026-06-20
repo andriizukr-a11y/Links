@@ -111,7 +111,7 @@ body {
 }
 
 .habit-icon:hover {
-    none: none;
+    cursor: pointer;
 }
 
 .habit-icon svg {
