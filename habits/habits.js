@@ -112,29 +112,6 @@ function playSuccessSound() {
   });
 }
 
-function playUncheckSound() {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-  const frequencies = [329.63, 349.23, 392.00];
-  frequencies.forEach((freq, index) => {
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = freq;
-    oscillator.type = 'sine';
-
-    const startTime = audioContext.currentTime + (index * 0.1);
-    gainNode.gain.setValueAtTime(0.15, startTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-
-    oscillator.start(startTime);
-    oscillator.stop(startTime + 0.2);
-  });
-}
-
 function createConfetti(x, y) {
   const colors = ['#5b9cf5', '#4ac06a', '#ffd700', '#ff6b6b', '#a855f7'];
   const confettiCount = 30;
@@ -1716,6 +1693,15 @@ class HabitsGistStorage {
         lastSync: new Date().toISOString()
       };
 
+      // Перевіряємо чи змінилися дані порівняно з останньою синхронізацією
+      const currentDataHash = JSON.stringify(habitsData);
+      if (this.lastSyncData === currentDataHash) {
+        console.log('Habits data unchanged, skipping sync');
+        this.pendingChanges = false;
+        this.isSyncing = false;
+        return false;
+      }
+
       // Спочатку завантажуємо поточний gist
       const gistResponse = await fetch(`https://api.github.com/gists/${this.config.gistId}`, {
         headers: {
@@ -1750,6 +1736,7 @@ class HabitsGistStorage {
       }
 
       this.lastSyncTime = new Date();
+      this.lastSyncData = currentDataHash;
       this.pendingChanges = false;
       return true;
     } catch (error) {
