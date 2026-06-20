@@ -32,7 +32,15 @@ function initNotes() {
       setTimeout(() => {
         const editorHadFocus = document.activeElement === output.querySelector('#notes-textarea');
         saveCurrentNoteSilent();
-        renderNotesUI(output);
+        // Only re-render UI to show error, not to refresh content
+        const errorHtml = getNotesWarningHtml();
+        const warningEl = output.querySelector('.notes-local-warning');
+        if (warningEl) {
+          warningEl.outerHTML = errorHtml;
+        } else {
+          const editor = output.querySelector('.notes-editor');
+          if (editor) editor.insertAdjacentHTML('afterbegin', errorHtml);
+        }
         if (editorHadFocus) {
           const editor = output.querySelector('#notes-textarea');
           if (editor) editor.focus();
@@ -43,7 +51,19 @@ function initNotes() {
       setTimeout(() => {
         const editorHadFocus = document.activeElement === output.querySelector('#notes-textarea');
         saveCurrentNoteSilent();
-        renderNotesUI(output);
+        // Only update warning message, don't re-render entire UI to avoid race conditions
+        const warningHtml = getNotesWarningHtml();
+        const warningEl = output.querySelector('.notes-local-warning');
+        if (warningEl) {
+          if (warningHtml) {
+            warningEl.outerHTML = warningHtml;
+          } else {
+            warningEl.remove();
+          }
+        } else if (warningHtml) {
+          const editor = output.querySelector('.notes-editor');
+          if (editor) editor.insertAdjacentHTML('afterbegin', warningHtml);
+        }
         if (editorHadFocus) {
           const editor = output.querySelector('#notes-textarea');
           if (editor) editor.focus();

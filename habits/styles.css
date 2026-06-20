@@ -195,6 +195,14 @@ body {
         inset 0 0 0 1px rgba(255,255,255,0.08);
 }
 
+.day-cell.half {
+    background: linear-gradient(to right, #388bfd 50%, #282828 50%);
+    border-color: transparent;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
 .day-cell.today {
   position: relative;
     border-color: #555;

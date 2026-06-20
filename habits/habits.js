@@ -926,6 +926,14 @@ function toggleHalfDate(habitId, dateStr, event) {
   }
 }
 
+function handleMiddleClick(habitId, dateStr, event) {
+  // Перевіряємо, чи натиснута середня кнопка миші (button === 1)
+  if (event.button === 1) {
+    event.preventDefault();
+    toggleHalfDate(habitId, dateStr, event);
+  }
+}
+
 function toggleToday(habitId) {
   const today = getLocalDateStr();
   toggleDate(habitId, today);
@@ -1110,7 +1118,7 @@ function renderHabits() {
   const totalDays = yearDates.length;
 
   container.innerHTML = habits.map(habit => {
-    const completed = habit.dates.length;
+    const completed = habit.dates.length + (habit.halfDates ? habit.halfDates.length * 0.5 : 0);
     const percent = totalDays ? Math.round((completed / totalDays) * 100) : 0;
     const streak = getStreak(habit.dates);
     const longest = getLongestStreak(habit.dates);
@@ -1124,6 +1132,7 @@ function renderHabits() {
     // Оптимізація: використовуємо Set для O(1) lookup дат
     const habitDatesSet = new Set(habit.dates);
     const habitSkippedSet = new Set(habit.skippedDates || []);
+    const habitHalfSet = new Set(habit.halfDates || []);
 
     // Heatmap grid
     heatmapHTML += '<div class="heatmap">';
@@ -1134,6 +1143,7 @@ function renderHabits() {
         const isPadding = cellData.isPadding;
         const isActive = habitDatesSet.has(dateStr);
         const isSkipped = habitSkippedSet.has(dateStr);
+        const isHalf = habitHalfSet.has(dateStr);
         const isToday = dateStr === today;
         const isFuture = dateStr > today;  // Add this line
 
@@ -1143,14 +1153,14 @@ function renderHabits() {
 
         if (isPadding) {
           // Клітинки з попереднього/наступного року - можна натискати, але вони з іншим стилем
-          heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''}"
+          heatmapHTML += `<div class="day-cell padding ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isHalf ? 'half' : ''}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
         } else {
           // Клітинки поточного року
-        heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}"
+        heatmapHTML += `<div class="day-cell ${isActive ? 'active' : ''} ${isSkipped ? 'skipped' : ''} ${isHalf ? 'half' : ''} ${isToday ? 'today' : ''} ${isFuture ? 'future' : ''}"
           onclick="toggleDate(${habit.id}, '${dateStr}', event)"
           oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
           onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
@@ -1506,7 +1516,8 @@ function renderComparisonTab(container) {
   
   // Calculate comparison metrics
   const habitMetrics = habits.map(habit => {
-    const completed = habit.dates.filter(d => new Date(d).getFullYear() === currentYear).length;
+    const completed = habit.dates.filter(d => new Date(d).getFullYear() === currentYear).length +
+                     (habit.halfDates ? habit.halfDates.filter(d => new Date(d).getFullYear() === currentYear).length * 0.5 : 0);
     const percent = totalDays ? Math.round((completed / totalDays) * 100) : 0;
     const streak = getStreak(habit.dates);
     const longest = getLongestStreak(habit.dates);
