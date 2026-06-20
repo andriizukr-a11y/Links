@@ -233,105 +233,6 @@ function createSkipParticles(x, y) {
   }
 }
 
-// ========== NOTIFICATION FUNCTIONS ==========
-
-async function requestNotificationPermission() {
-  if (!('Notification' in window)) {
-    console.log('Цей браузер не підтримує сповіщення');
-    return false;
-  }
-
-  if (Notification.permission === 'granted') {
-    return true;
-  }
-
-  if (Notification.permission !== 'denied') {
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
-  }
-
-  return false;
-}
-
-function sendHabitReminder(habit) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    return;
-  }
-
-  const today = getLocalDateStr();
-  const isAlreadyDone = habit.dates.includes(today);
-  const isAlreadySkipped = habit.skippedDates && habit.skippedDates.includes(today);
-
-  if (isAlreadyDone || isAlreadySkipped) {
-    return; // Не відправляти нагадування, якщо вже виконано або пропущено сьогодні
-  }
-
-  const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || '';
-  
-  const notification = new Notification(`🔔 Нагадування: ${habit.name}`, {
-    body: 'Час виконати вашу звичку!',
-    icon: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(iconSvg)}`,
-    tag: `habit-${habit.id}-${today}`,
-    requireInteraction: true
-  });
-
-  notification.onclick = function() {
-    window.focus();
-    notification.close();
-  };
-}
-
-function checkReminders() {
-  const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const today = getLocalDateStr();
-
-  habits.forEach(habit => {
-    if (habit.reminderEnabled && habit.reminderTime === currentTime) {
-      sendHabitReminder(habit);
-    }
-  });
-}
-
-function startReminderChecker() {
-  if (reminderCheckInterval) {
-    clearInterval(reminderCheckInterval);
-  }
-  
-  // Перевіряємо кожну хвилину
-  reminderCheckInterval = setInterval(checkReminders, 60000);
-  
-  // Також перевіряємо одразу при старті
-  checkReminders();
-}
-
-function stopReminderChecker() {
-  if (reminderCheckInterval) {
-    clearInterval(reminderCheckInterval);
-    reminderCheckInterval = null;
-  }
-}
-
-async function testNotification() {
-  const hasPermission = await requestNotificationPermission();
-  
-  if (!hasPermission) {
-    alert('Будь ласка, надайте дозвіл на сповіщення в налаштуваннях браузера');
-    return;
-  }
-
-  const testNotification = new Notification('🔔 Тест сповіщень', {
-    body: 'Сповіщення працюють коректно!',
-    icon: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="%235b9cf5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>'),
-    requireInteraction: true
-  });
-
-  testNotification.onclick = function() {
-    window.focus();
-    testNotification.close();
-  };
-}
-
 function initHabits() {
   const output = document.getElementById('output-habits');
   if (!output) return;
@@ -342,6 +243,13 @@ function initHabits() {
     link.rel = 'stylesheet';
     link.href = 'habits/styles.css';
     document.head.appendChild(link);
+  }
+
+  // Load reminders.js
+  if (!document.querySelector('script[src="habits/reminders.js"]')) {
+    const script = document.createElement('script');
+    script.src = 'habits/reminders.js';
+    document.head.appendChild(script);
   }
 
   // Спроба завантажити з gist при ініціалізації
@@ -364,9 +272,14 @@ function initHabits() {
     });
   }
 
-  // Запускаємо перевірку нагадувань
-  startReminderChecker();
-  
+  // Чекаємо завантаження reminders.js та ініціалізуємо нагадування
+  setTimeout(() => {
+    if (typeof cleanupOldReminders === 'function' && typeof startReminderChecker === 'function') {
+      cleanupOldReminders(getLocalDateStr);
+      startReminderChecker(habits, ICONS, getLocalDateStr);
+    }
+  }, 100);
+
   // Перевіряємо, чи є звички з увімкненими нагадуваннями
   const hasReminderEnabled = habits.some(h => h.reminderEnabled);
   if (hasReminderEnabled) {
@@ -534,19 +447,6 @@ function selectIcon(iconId) {
 function selectEditIcon(iconId) {
   editSelectedIcon = ICONS.find(icon => icon.id === iconId);
   renderEditIconPicker();
-}
-
-function toggleReminderTimeInput(checkboxId, timeInputId) {
-  const checkbox = document.getElementById(checkboxId);
-  const timeInput = document.getElementById(timeInputId);
-  
-  if (checkbox.checked) {
-    timeInput.style.display = 'block';
-    // Запитуємо дозвіл на сповіщення при ввімкненні нагадувань
-    requestNotificationPermission();
-  } else {
-    timeInput.style.display = 'none';
-  }
 }
 
 function openModal() {

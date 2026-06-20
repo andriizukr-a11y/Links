@@ -61,9 +61,53 @@ function checkReminders(habits, ICONS, getLocalDateStr) {
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const today = getLocalDateStr();
 
+  // Отримуємо час останніх нагадувань з localStorage
+  const lastReminders = JSON.parse(localStorage.getItem('lastReminders') || '{}');
+
   habits.forEach(habit => {
-    if (habit.reminderEnabled && habit.reminderTime === currentTime) {
+    if (!habit.reminderEnabled) return;
+
+    const today = getLocalDateStr();
+    const isAlreadyDone = habit.dates.includes(today);
+    const isAlreadySkipped = habit.skippedDates && habit.skippedDates.includes(today);
+
+    // Не відправляти нагадування, якщо вже виконано або пропущено сьогодні
+    if (isAlreadyDone || isAlreadySkipped) return;
+
+    const habitReminderKey = `habit-${habit.id}-${today}`;
+    const lastReminderTime = lastReminders[habitReminderKey];
+
+    // Перевіряємо чи настав час нагадування
+    let shouldSendReminder = false;
+
+    if (!lastReminderTime) {
+      // Перше нагадування дня - відправляємо у вказаний час
+      if (habit.reminderTime === currentTime) {
+        shouldSendReminder = true;
+      }
+    } else {
+      // Повторні нагадування - кожні 2 години після першого
+      const lastReminderDate = new Date(lastReminderTime);
+      const hoursSinceLastReminder = (now - lastReminderDate) / (1000 * 60 * 60);
+
+      if (hoursSinceLastReminder >= 2) {
+        // Перевіряємо чи пройшло рівно 2 години або більше
+        const lastReminderHours = lastReminderDate.getHours();
+        const currentHours = now.getHours();
+        const hoursDiff = currentHours - lastReminderHours;
+
+        // Відправляємо якщо пройшло 2 або більше годин
+        if (hoursDiff >= 2) {
+          shouldSendReminder = true;
+        }
+      }
+    }
+
+    if (shouldSendReminder) {
       sendHabitReminder(habit, ICONS, getLocalDateStr);
+      // Зберігаємо час цього нагадування
+      lastReminders[habitReminderKey] = now.toISOString();
+      localStorage.setItem('lastReminders', JSON.stringify(lastReminders));
     }
   });
 }
@@ -120,9 +164,28 @@ function toggleReminderTimeInput(checkboxId, timeInputId) {
   }
 }
 
+function cleanupOldReminders(getLocalDateStr) {
+  const lastReminders = JSON.parse(localStorage.getItem('lastReminders') || '{}');
+  const today = getLocalDateStr();
+  let cleaned = false;
+
+  // Видаляємо записи з попередніх днів
+  Object.keys(lastReminders).forEach(key => {
+    if (!key.includes(today)) {
+      delete lastReminders[key];
+      cleaned = true;
+    }
+  });
+
+  if (cleaned) {
+    localStorage.setItem('lastReminders', JSON.stringify(lastReminders));
+  }
+}
+
 // Експортуємо функції для використання в habits.js
 window.requestNotificationPermission = requestNotificationPermission;
 window.startReminderChecker = startReminderChecker;
 window.stopReminderChecker = stopReminderChecker;
 window.testNotification = testNotification;
 window.toggleReminderTimeInput = toggleReminderTimeInput;
+window.cleanupOldReminders = cleanupOldReminders;
