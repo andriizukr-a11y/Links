@@ -112,6 +112,29 @@ function playSuccessSound() {
   });
 }
 
+function playUncheckSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  const frequencies = [783.99, 659.25, 523.25];
+  frequencies.forEach((freq, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = freq;
+    oscillator.type = 'sine';
+
+    const startTime = audioContext.currentTime + (index * 0.1);
+    gainNode.gain.setValueAtTime(0.2, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.2);
+  });
+}
+
 function createConfetti(x, y) {
   const colors = ['#5b9cf5', '#4ac06a', '#ffd700', '#ff6b6b', '#a855f7'];
   const confettiCount = 30;
