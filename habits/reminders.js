@@ -9,6 +9,9 @@ if (!document.querySelector('link[href="habits/reminders.css"]')) {
 }
 
 let reminderCheckInterval = null;
+let currentHabits = null;
+let currentICONS = null;
+let currentGetLocalDateStr = null;
 
 async function requestNotificationPermission() {
   if (!('Notification' in window)) {
@@ -28,11 +31,19 @@ async function requestNotificationPermission() {
   return false;
 }
 
-function sendHabitReminder(habit, ICONS, getLocalDateStr) {
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
+function sendHabitReminder(habit) {
+  if (!currentICONS || !currentGetLocalDateStr) {
+    console.error('Reminder data not initialized');
     return;
   }
 
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    console.log('Notification permission not granted');
+    return;
+  }
+
+  const ICONS = currentICONS;
+  const getLocalDateStr = currentGetLocalDateStr;
   const today = getLocalDateStr();
   const isAlreadyDone = habit.dates.includes(today);
   const isAlreadySkipped = habit.skippedDates && habit.skippedDates.includes(today);
@@ -42,7 +53,9 @@ function sendHabitReminder(habit, ICONS, getLocalDateStr) {
   }
 
   const iconSvg = ICONS.find(icon => icon.id === habit.icon)?.svg || '';
-  
+
+  console.log(`Creating notification for: ${habit.name}`);
+
   const notification = new Notification(`🔔 Нагадування: ${habit.name}`, {
     body: 'Час виконати вашу звичку!',
     icon: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(iconSvg)}`,
@@ -56,10 +69,22 @@ function sendHabitReminder(habit, ICONS, getLocalDateStr) {
   };
 }
 
-function checkReminders(habits, ICONS, getLocalDateStr) {
+function checkReminders() {
+  if (!currentHabits || !currentICONS || !currentGetLocalDateStr) {
+    console.log('Reminder data not initialized');
+    return;
+  }
+
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const today = getLocalDateStr();
+  const today = currentGetLocalDateStr();
+
+  console.log('Checking reminders at:', currentTime);
+
+  // Отримуємо актуальні дані про звички з localStorage
+  const habits = JSON.parse(localStorage.getItem('habits') || '[]');
+  const ICONS = currentICONS;
+  const getLocalDateStr = currentGetLocalDateStr;
 
   // Отримуємо час останніх нагадувань з localStorage
   const lastReminders = JSON.parse(localStorage.getItem('lastReminders') || '{}');
@@ -70,6 +95,8 @@ function checkReminders(habits, ICONS, getLocalDateStr) {
     const today = getLocalDateStr();
     const isAlreadyDone = habit.dates.includes(today);
     const isAlreadySkipped = habit.skippedDates && habit.skippedDates.includes(today);
+
+    console.log(`Habit: ${habit.name}, enabled: ${habit.reminderTime}, done: ${isAlreadyDone}, skipped: ${isAlreadySkipped}`);
 
     // Не відправляти нагадування, якщо вже виконано або пропущено сьогодні
     if (isAlreadyDone || isAlreadySkipped) return;
@@ -82,6 +109,7 @@ function checkReminders(habits, ICONS, getLocalDateStr) {
 
     if (!lastReminderTime) {
       // Перше нагадування дня - відправляємо у вказаний час
+      console.log(`First reminder check: habit time ${habit.reminderTime} vs current ${currentTime}`);
       if (habit.reminderTime === currentTime) {
         shouldSendReminder = true;
       }
@@ -90,21 +118,17 @@ function checkReminders(habits, ICONS, getLocalDateStr) {
       const lastReminderDate = new Date(lastReminderTime);
       const hoursSinceLastReminder = (now - lastReminderDate) / (1000 * 60 * 60);
 
-      if (hoursSinceLastReminder >= 2) {
-        // Перевіряємо чи пройшло рівно 2 години або більше
-        const lastReminderHours = lastReminderDate.getHours();
-        const currentHours = now.getHours();
-        const hoursDiff = currentHours - lastReminderHours;
+      console.log(`Repeat reminder check: hours since last: ${hoursSinceLastReminder.toFixed(2)}`);
 
+      if (hoursSinceLastReminder >= 2) {
         // Відправляємо якщо пройшло 2 або більше годин
-        if (hoursDiff >= 2) {
-          shouldSendReminder = true;
-        }
+        shouldSendReminder = true;
       }
     }
 
     if (shouldSendReminder) {
-      sendHabitReminder(habit, ICONS, getLocalDateStr);
+      console.log(`Sending reminder for: ${habit.name}`);
+      sendHabitReminder(habit);
       // Зберігаємо час цього нагадування
       lastReminders[habitReminderKey] = now.toISOString();
       localStorage.setItem('lastReminders', JSON.stringify(lastReminders));
@@ -113,15 +137,22 @@ function checkReminders(habits, ICONS, getLocalDateStr) {
 }
 
 function startReminderChecker(habits, ICONS, getLocalDateStr) {
+  // Зберігаємо посилання на актуальні дані
+  currentHabits = habits;
+  currentICONS = ICONS;
+  currentGetLocalDateStr = getLocalDateStr;
+
   if (reminderCheckInterval) {
     clearInterval(reminderCheckInterval);
   }
-  
+
+  console.log('Starting reminder checker');
+
   // Перевіряємо кожну хвилину
-  reminderCheckInterval = setInterval(() => checkReminders(habits, ICONS, getLocalDateStr), 60000);
-  
+  reminderCheckInterval = setInterval(checkReminders, 60000);
+
   // Також перевіряємо одразу при старті
-  checkReminders(habits, ICONS, getLocalDateStr);
+  checkReminders();
 }
 
 function stopReminderChecker() {
@@ -164,10 +195,17 @@ function toggleReminderTimeInput(checkboxId, timeInputId) {
   }
 }
 
-function cleanupOldReminders(getLocalDateStr) {
+function cleanupOldReminders() {
+  if (!currentGetLocalDateStr) {
+    console.error('getLocalDateStr not initialized');
+    return;
+  }
+
   const lastReminders = JSON.parse(localStorage.getItem('lastReminders') || '{}');
-  const today = getLocalDateStr();
+  const today = currentGetLocalDateStr();
   let cleaned = false;
+
+  console.log('Cleaning old reminders for today:', today);
 
   // Видаляємо записи з попередніх днів
   Object.keys(lastReminders).forEach(key => {
@@ -179,7 +217,25 @@ function cleanupOldReminders(getLocalDateStr) {
 
   if (cleaned) {
     localStorage.setItem('lastReminders', JSON.stringify(lastReminders));
+    console.log('Cleaned old reminders');
   }
+}
+
+// Функція для ручного тестування нагадувань
+function testHabitReminder() {
+  if (!currentHabits || currentHabits.length === 0) {
+    console.log('No habits available');
+    return;
+  }
+
+  const habitWithReminder = currentHabits.find(h => h.reminderEnabled);
+  if (!habitWithReminder) {
+    console.log('No habits with reminders enabled');
+    return;
+  }
+
+  console.log('Testing reminder for:', habitWithReminder.name);
+  sendHabitReminder(habitWithReminder);
 }
 
 // Експортуємо функції для використання в habits.js
@@ -189,3 +245,4 @@ window.stopReminderChecker = stopReminderChecker;
 window.testNotification = testNotification;
 window.toggleReminderTimeInput = toggleReminderTimeInput;
 window.cleanupOldReminders = cleanupOldReminders;
+window.testHabitReminder = testHabitReminder;

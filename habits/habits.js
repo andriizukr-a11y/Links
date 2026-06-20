@@ -91,22 +91,45 @@ function hideTooltip() {
 
 function playSuccessSound() {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  
+
   const frequencies = [523.25, 659.25, 783.99];
   frequencies.forEach((freq, index) => {
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     oscillator.frequency.value = freq;
     oscillator.type = 'sine';
-    
+
     const startTime = audioContext.currentTime + (index * 0.1);
     gainNode.gain.setValueAtTime(0.2, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-    
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.2);
+  });
+}
+
+function playUncheckSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  const frequencies = [783.99, 659.25, 523.25];
+  frequencies.forEach((freq, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = freq;
+    oscillator.type = 'sine';
+
+    const startTime = audioContext.currentTime + (index * 0.1);
+    gainNode.gain.setValueAtTime(0.2, startTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
+
     oscillator.start(startTime);
     oscillator.stop(startTime + 0.2);
   });
@@ -249,7 +272,30 @@ function initHabits() {
   if (!document.querySelector('script[src="habits/reminders.js"]')) {
     const script = document.createElement('script');
     script.src = 'habits/reminders.js';
+    script.onload = function() {
+      console.log('reminders.js loaded successfully');
+      // Ініціалізуємо нагадування після завантаження
+      if (typeof cleanupOldReminders === 'function') {
+        cleanupOldReminders();
+      }
+      if (typeof startReminderChecker === 'function') {
+        startReminderChecker(habits, ICONS, getLocalDateStr);
+      }
+    };
+    script.onerror = function() {
+      console.error('Failed to load reminders.js');
+    };
     document.head.appendChild(script);
+  } else {
+    // Якщо скрипт вже завантажений, ініціалізуємо нагадування
+    setTimeout(() => {
+      if (typeof cleanupOldReminders === 'function') {
+        cleanupOldReminders();
+      }
+      if (typeof startReminderChecker === 'function') {
+        startReminderChecker(habits, ICONS, getLocalDateStr);
+      }
+    }, 100);
   }
 
   // Спроба завантажити з gist при ініціалізації
@@ -271,14 +317,6 @@ function initHabits() {
       habitsGistStorage.startAutoSync();
     });
   }
-
-  // Чекаємо завантаження reminders.js та ініціалізуємо нагадування
-  setTimeout(() => {
-    if (typeof cleanupOldReminders === 'function' && typeof startReminderChecker === 'function') {
-      cleanupOldReminders(getLocalDateStr);
-      startReminderChecker(habits, ICONS, getLocalDateStr);
-    }
-  }, 100);
 
   // Перевіряємо, чи є звички з увімкненими нагадуваннями
   const hasReminderEnabled = habits.some(h => h.reminderEnabled);
@@ -521,7 +559,8 @@ function saveHabit() {
     dates: [],           // <-- НЕ відмічаємо сьогодні автоматично
     skippedDates: [],    // <-- пустий масив для пропусків
     reminderEnabled,
-    reminderTime: reminderEnabled ? reminderTime : null
+    // Зберігаємо час нагадування навіть якщо вимкнено, щоб не загубити попереднє значення
+    reminderTime: reminderEnabled ? reminderTime : (reminderTime || null)
   };
 
   habits.push(habit);
@@ -543,7 +582,14 @@ function saveEditHabit() {
     const reminderTime = document.getElementById('editReminderTime').value;
     
     habit.reminderEnabled = reminderEnabled;
-    habit.reminderTime = reminderEnabled ? reminderTime : null;
+    // Зберігаємо час нагадування навіть якщо вимкнено, щоб не загубити попереднє значення
+    if (reminderEnabled) {
+      habit.reminderTime = reminderTime;
+    }
+    // Якщо вимкнено і час не було встановлено, залишаємо null, інакше зберігаємо поточне значення інпуту
+    else if (reminderTime) {
+      habit.reminderTime = reminderTime;
+    }
     
     saveHabits();
   }
@@ -632,6 +678,7 @@ function toggleDate(habitId, dateStr, event) {
   const idx = habit.dates.indexOf(dateStr);
   if (idx > -1) {
     habit.dates.splice(idx, 1);
+    playUncheckSound();
   } else {
     habit.dates.push(dateStr);
     if (habit.skippedDates) {
