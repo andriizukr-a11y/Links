@@ -383,6 +383,7 @@ function initHabits() {
     </div>
     <div class="modal-buttons">
       <button class="modal-btn cancel" onclick="closeEditModal()">Скасувати</button>
+      <button class="modal-btn danger" onclick="deleteHabitFromEditModal()">Видалити</button>
       <button class="modal-btn save" onclick="saveEditHabit()">Зберегти</button>
     </div>
   </div>
@@ -599,16 +600,21 @@ function saveEditHabit() {
 
 function saveHabits() {
   localStorage.setItem('habits', JSON.stringify(habits));
-  // Синхронізація з gist
+  // Синхронізація з gist через debounce
   if (habitsGistStorage.isEnabled()) {
-    habitsGistStorage.updateHabitsInGist().catch(err => {
-      console.error('Gist sync error on save:', err);
-    });
+    habitsGistStorage.markPendingChanges();
   }
 }
 
 function deleteHabit(id) {
   openDeleteModal(id);
+}
+
+function deleteHabitFromEditModal() {
+  if (editingHabitId) {
+    closeEditModal();
+    openDeleteModal(editingHabitId);
+  }
 }
 
 function handleHabitDragStart(event) {
@@ -1067,7 +1073,6 @@ function renderHabits() {
               <span class="streak-count">${streak}</span>
             </div>
             ` : ''}
-            <button class="delete-btn" onclick="event.stopPropagation(); deleteHabit(${habit.id})">✕</button>
           </div>
           ${heatmapHTML}
         </div>
@@ -1671,6 +1676,10 @@ class HabitsGistStorage {
     this.config = this.loadConfig();
     this.isSyncing = false;
     this.syncTimer = null;
+    this.debounceTimer = null;
+    this.pendingChanges = false;
+    this.lastSyncTime = null;
+    this._suppressAutoSync = false;
   }
 
   loadConfig() {
@@ -1739,6 +1748,8 @@ class HabitsGistStorage {
         throw new Error('Не вдалося оновити gist');
       }
 
+      this.lastSyncTime = new Date();
+      this.pendingChanges = false;
       return true;
     } catch (error) {
       console.error('Habits Gist sync error:', error);
@@ -1803,18 +1814,42 @@ class HabitsGistStorage {
       return;
     }
 
-    // Синхронізація кожні 30 секунд
+    // Синхронізація кожні 5 хвилин (300 секунд) тільки якщо є зміни
     this.syncTimer = setInterval(() => {
-      this.updateHabitsInGist().catch(err => {
-        console.error('Auto-sync failed:', err);
-      });
-    }, 30000);
+      if (this.pendingChanges && !this.isSyncing) {
+        this.updateHabitsInGist().catch(err => {
+          console.error('Auto-sync failed:', err);
+        });
+      }
+    }, 300000);
+  }
+
+  markPendingChanges() {
+    if (this._suppressAutoSync) return;
+    this.pendingChanges = true;
+    this.scheduleImmediateSync();
+  }
+
+  scheduleImmediateSync() {
+    if (!this.isEnabled() || this._suppressAutoSync) return;
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      if (this.pendingChanges && !this.isSyncing) {
+        this.updateHabitsInGist().catch(err => {
+          console.error('Immediate sync failed:', err);
+        });
+      }
+    }, 10000); // 10 секунд debounce, як в notes
   }
 
   stopAutoSync() {
     if (this.syncTimer) {
       clearInterval(this.syncTimer);
       this.syncTimer = null;
+    }
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
     }
   }
 }

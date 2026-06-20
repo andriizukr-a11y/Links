@@ -1,7 +1,7 @@
 /* ---------- GITHUB GIST STORAGE ---------- */
 
 const GIST_CONFIG_KEY = 'gist_config';
-const GIST_SYNC_INTERVAL = 30000; // 30 seconds
+const GIST_SYNC_INTERVAL = 300000; // 5 minutes (300 seconds)
 const GIST_DEBOUNCE_MS = 10000; // 10 seconds debounce for immediate sync
 
 class GistStorage {
