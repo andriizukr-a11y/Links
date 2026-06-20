@@ -13,6 +13,7 @@ class GistStorage {
     this.lastSyncTime = null;
     this.pendingChanges = false;
     this._suppressAutoSync = false;
+    this.lastSyncData = null;
   }
 
   loadConfig() {
@@ -145,6 +146,16 @@ class GistStorage {
         lastSync: new Date().toISOString()
       };
 
+      // Перевіряємо чи змінилися дані порівняно з останньою синхронізацією
+      const currentDataHash = JSON.stringify(data);
+      if (this.lastSyncData === currentDataHash) {
+        console.log('Data unchanged, skipping sync');
+        this.pendingChanges = false;
+        this.isSyncing = false;
+        this.updateSyncStatus('idle');
+        return;
+      }
+
       if (!this.config.gistId) {
         // Create new gist
         const gistId = await this.createGist(data);
@@ -155,9 +166,10 @@ class GistStorage {
       }
 
       this.lastSyncTime = new Date();
+      this.lastSyncData = currentDataHash;
       this.pendingChanges = false;
       this.updateSyncStatus('success');
-      
+
       setTimeout(() => this.updateSyncStatus('idle'), 2000);
     } catch (error) {
       console.error('Gist sync error:', error);

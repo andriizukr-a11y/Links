@@ -115,7 +115,7 @@ function playSuccessSound() {
 function playUncheckSound() {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-  const frequencies = [783.99, 659.25, 523.25];
+  const frequencies = [329.63, 349.23, 392.00];
   frequencies.forEach((freq, index) => {
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -127,7 +127,7 @@ function playUncheckSound() {
     oscillator.type = 'sine';
 
     const startTime = audioContext.currentTime + (index * 0.1);
-    gainNode.gain.setValueAtTime(0.2, startTime);
+    gainNode.gain.setValueAtTime(0.15, startTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
 
     oscillator.start(startTime);
@@ -1679,6 +1679,7 @@ class HabitsGistStorage {
     this.debounceTimer = null;
     this.pendingChanges = false;
     this.lastSyncTime = null;
+    this.lastSyncData = null;
     this._suppressAutoSync = false;
   }
 
