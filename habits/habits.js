@@ -751,6 +751,7 @@ function toggleSkippedDate(habitId, dateStr, event) {
   const idx = habit.skippedDates.indexOf(dateStr);
   if (idx > -1) {
     habit.skippedDates.splice(idx, 1);
+    playUncheckSound();
   } else {
     habit.skippedDates.push(dateStr);
     const doneIdx = habit.dates.indexOf(dateStr);
