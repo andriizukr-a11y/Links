@@ -987,19 +987,46 @@ function getMonthData(dates) {
   return months.map(m => ({ month: m, count: counts[m] }));
 }
 
-function getStreak(dates) {
+function getStreak(dates, skippedDates = []) {
   if (!dates || dates.length === 0) return 0;
 
   const datesSet = new Set(dates);
+  const skippedSet = new Set(skippedDates);
+  
+  // Знаходимо найпізнішу відмічену дату
+  const sortedDates = [...dates].sort();
+  let lastCheckedDate = new Date(sortedDates[sortedDates.length - 1]);
+  
+  // Перевіряємо, чи є скіпи після останньої відміченої дати
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  lastCheckedDate.setHours(0, 0, 0, 0);
+  
+  // Перевіряємо дати від lastCheckedDate+1 до today
+  let checkDate = new Date(lastCheckedDate);
+  checkDate.setDate(checkDate.getDate() + 1);
+  
+  while (checkDate <= today) {
+    const dateStr = getLocalDateStr(checkDate);
+    if (skippedSet.has(dateStr)) {
+      // Якщо є скіп після останньої відміченої дати, серія не рахується
+      return 0;
+    }
+    checkDate.setDate(checkDate.getDate() + 1);
+  }
+  
   let streak = 0;
-  let checkDate = new Date();
+  checkDate = new Date(lastCheckedDate);
 
-  // Рахуємо тільки якщо сьогодні позначено
+  // Рахуємо серію від останньої відміченої дати
   while (true) {
     const dateStr = getLocalDateStr(checkDate);
     if (datesSet.has(dateStr)) {
       streak++;
       checkDate.setDate(checkDate.getDate() - 1);
+    } else if (skippedSet.has(dateStr)) {
+      // Якщо знайдено skip, перериваємо серію
+      break;
     } else {
       break;
     }
@@ -1120,7 +1147,7 @@ function renderHabits() {
   container.innerHTML = habits.map(habit => {
     const completed = habit.dates.length + (habit.halfDates ? habit.halfDates.length * 0.5 : 0);
     const percent = totalDays ? Math.round((completed / totalDays) * 100) : 0;
-    const streak = getStreak(habit.dates);
+    const streak = getStreak(habit.dates, habit.skippedDates);
     const longest = getLongestStreak(habit.dates);
     const monthData = getMonthData(habit.dates);
     const isDoneToday = habit.dates.includes(today);
@@ -1519,7 +1546,7 @@ function renderComparisonTab(container) {
     const completed = habit.dates.filter(d => new Date(d).getFullYear() === currentYear).length +
                      (habit.halfDates ? habit.halfDates.filter(d => new Date(d).getFullYear() === currentYear).length * 0.5 : 0);
     const percent = totalDays ? Math.round((completed / totalDays) * 100) : 0;
-    const streak = getStreak(habit.dates);
+    const streak = getStreak(habit.dates, habit.skippedDates);
     const longest = getLongestStreak(habit.dates);
     const skipped = (habit.skippedDates || []).filter(d => new Date(d).getFullYear() === currentYear).length;
     
