@@ -316,24 +316,30 @@ function initHabits() {
     }, 100);
   }
 
-  // Спроба завантажити з gist при ініціалізації
+  // ВИМКНЕНО автоматичне завантаження з gist при ініціалізації, щоб уникнути перезапису локальних змін
+  // Якщо потрібна синхронізація, використовуйте кнопку "Синхронізувати з Gist"
+  // if (habitsGistStorage.isEnabled()) {
+  //   habitsGistStorage.loadHabitsFromGist().then(gistHabits => {
+  //     if (gistHabits && gistHabits.length > 0) {
+  //       // Порівнюємо з локальними даними та беремо новіші
+  //       const localHabits = JSON.parse(localStorage.getItem('habits') || '[]');
+  //       if (gistHabits.length !== localHabits.length || 
+  //           JSON.stringify(gistHabits) !== JSON.stringify(localHabits)) {
+  //         habits = gistHabits;
+  //         localStorage.setItem('habits', JSON.stringify(habits));
+  //         console.log('Habits loaded from Gist');
+  //       }
+  //     }
+  //     habitsGistStorage.startAutoSync();
+  //   }).catch(err => {
+  //     console.error('Failed to load habits from Gist:', err);
+  //     habitsGistStorage.startAutoSync();
+  //   });
+  // }
+
+  // Тільки авто-синхронізація для збереження змін в gist (без завантаження)
   if (habitsGistStorage.isEnabled()) {
-    habitsGistStorage.loadHabitsFromGist().then(gistHabits => {
-      if (gistHabits && gistHabits.length > 0) {
-        // Порівнюємо з локальними даними та беремо новіші
-        const localHabits = JSON.parse(localStorage.getItem('habits') || '[]');
-        if (gistHabits.length !== localHabits.length || 
-            JSON.stringify(gistHabits) !== JSON.stringify(localHabits)) {
-          habits = gistHabits;
-          localStorage.setItem('habits', JSON.stringify(habits));
-          console.log('Habits loaded from Gist');
-        }
-      }
-      habitsGistStorage.startAutoSync();
-    }).catch(err => {
-      console.error('Failed to load habits from Gist:', err);
-      habitsGistStorage.startAutoSync();
-    });
+    habitsGistStorage.startAutoSync();
   }
 
   // Перевіряємо, чи є звички з увімкненими нагадуваннями
