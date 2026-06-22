@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xbel PUBLIC "+//IDN python.org//DTD XML Bookmark Exchange Language 1.0//EN//XML" "http://pyxml.sourceforge.net/topics/dtds/xbel.dtd">
 <xbel version="1.0">
-<!--- highestId :33: for Floccus bookmark sync browser extension -->
+<!--- highestId :34: for Floccus bookmark sync browser extension -->
 
 <bookmark href="https://blimb.su/" id="1">
   <title>Blimb - Сайт для глаз</title>
@@ -92,5 +92,8 @@
 </bookmark>
 <bookmark href="https://www.youtube.com/watch?v=in9ubCilsT8" id="33">
   <title>Як я виправив свою жахливу поставу — 5 звичок - YouTube</title>
+</bookmark>
+<bookmark href="https://www.youtube.com/watch?v=OJZ4pjzwDLU" id="34">
+  <title>Мій ранковий розпорядок (доживу до 120+ років) - YouTube</title>
 </bookmark>
 </xbel>
