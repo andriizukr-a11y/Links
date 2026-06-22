@@ -144,9 +144,11 @@ if ('serviceWorker' in navigator) {
     'bookmarks.js',
     'tasks.js',
     'habits/icons.js',
+    'habits/date-utils.js',
     'habits/reminders.js',
     'habits/statistics.js',
     'habits/habits.js',
+    'habits/gist-storage.js',
     'app.js'
   ]);
 
