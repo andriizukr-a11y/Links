@@ -143,7 +143,9 @@ if ('serviceWorker' in navigator) {
   await loadScriptsInOrder([
     'bookmarks.js',
     'tasks.js',
+    'habits/icons.js',
     'habits/reminders.js',
+    'habits/statistics.js',
     'habits/habits.js',
     'app.js'
   ]);
