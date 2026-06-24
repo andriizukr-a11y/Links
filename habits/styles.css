@@ -152,6 +152,7 @@ body {
     height: 15px;
     flex-shrink: 0;
     opacity: 0.5;
+    margin-top: 3px;
 }
 
 .hstats-chip b {
@@ -240,7 +241,7 @@ body {
     align-items: center;
     justify-content: center;
     color: #666666;
-    cursor: move;
+    cursor: grab;
     font-size: 12px;
     line-height: 1;
     opacity: 0;
@@ -255,6 +256,10 @@ body {
 
 .habit-card.dragging {
     opacity: 0.5;
+}
+
+.habit-card.dragging .habit-drag-handle {
+    cursor: grabbing;
 }
 
 .habit-card.drag-over {
@@ -282,11 +287,14 @@ body {
     font-size: 20px;
     color: #e8e8e8;
     cursor: pointer;
-    transition: all 0.15s;
+    transition:
+        background 0.15s,
+        box-shadow 0.15s;
 }
 
 .habit-icon:hover {
-    cursor: pointer;
+    background: #323232;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
 }
 
 .habit-icon svg {
@@ -300,11 +308,13 @@ body {
     font-size: 18px;
     font-weight: 600;
     color: white;
-    transition: all 0.15s;
+    cursor: pointer;
+    user-select: none;
+    transition: opacity 0.15s;
 }
 
 .habit-name:hover {
-    cursor: pointer;
+    opacity: 1;
 }
 
 .habit-main {
