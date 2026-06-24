@@ -44,164 +44,136 @@ body {
     margin: 0 auto;
 }
 
+/* ─── Stats Dashboard ─── */
 .habits-stats {
     width: 100%;
-    margin: 0 auto 16px auto;
-}
-
-.stat-top-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 8px;
-}
-
-.stat-formula {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.formula-chip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 5px 10px;
-    border-radius: 8px;
-    min-width: 60px;
-}
-
-.formula-chip .chip-icon {
-    font-size: 13px;
-    line-height: 1;
-}
-
-.formula-chip .chip-value {
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 1.15;
-}
-
-.formula-chip .chip-label {
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    opacity: 0.5;
-}
-
-.formula-chip.positive {
-    background: rgba(85, 210, 122, 0.08);
-    color: #55d27a;
-}
-
-.formula-chip.skipped {
-    background: rgba(160, 160, 160, 0.06);
-    color: #9aa6bf;
-}
-
-.formula-chip.bad {
-    background: rgba(248, 81, 73, 0.08);
-    color: #f85149;
-}
-
-.formula-chip.total.positive {
-    background: rgba(91, 156, 245, 0.1);
-    color: #5b9cf5;
-}
-
-.formula-chip.total.negative {
-    background: rgba(248, 81, 73, 0.1);
-    color: #f85149;
-}
-
-.formula-op,
-.formula-equal {
-    color: #2e3a4e;
-    font-weight: 600;
-    font-size: 14px;
-    padding-bottom: 14px;
-}
-
-.stat-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-}
-
-.stat-grade {
-    font-size: 20px;
-    font-weight: 800;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-}
-
-.stat-grade.grade-s {
-    background: rgba(255, 215, 0, 0.1);
-    color: #ffd700;
-}
-.stat-grade.grade-a {
-    background: rgba(91, 156, 245, 0.12);
-    color: #5b9cf5;
-}
-.stat-grade.grade-b {
-    background: rgba(85, 210, 122, 0.1);
-    color: #55d27a;
-}
-.stat-grade.grade-c {
-    background: rgba(255, 159, 67, 0.1);
-    color: #ff9f43;
-}
-.stat-grade.grade-d {
-    background: rgba(248, 81, 73, 0.1);
-    color: #f85149;
-}
-
-.stat-today {
-    font-size: 11px;
-    color: #3a4558;
-    white-space: nowrap;
-}
-
-.stat-today strong {
-    color: #6b7fa0;
-    font-weight: 700;
-}
-
-.stat-progress-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.stat-progress-bar {
-    flex: 1;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 2px;
+    margin: 0 auto;
+    background: #1b1b1b;
+    border: 1px solid #262626;
+    border-radius: 16px;
     overflow: hidden;
 }
 
-.stat-progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: linear-gradient(90deg, #55d27a, #5b9cf5);
-    transition: width 0.5s ease;
+.hstats-panels {
+    display: flex;
 }
 
-.stat-efficiency {
-    font-size: 11px;
-    color: #2e3a4e;
+.hstats-panel {
+    flex: 1;
+    padding: 16px 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.hstats-panel:first-child {
+    border-right: 1px solid #262626;
+}
+
+.hstats-panel-label {
+    font-size: 10px;
     font-weight: 600;
-    min-width: 28px;
-    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: #444;
+}
+
+.hstats-period {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-transform: none;
+    color: #333;
+}
+
+.hstats-panel-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hstats-num {
+    font-size: 26px;
+    font-weight: 700;
+    color: #ddd;
+    line-height: 1;
+    white-space: nowrap;
+    min-width: 40px;
+}
+
+.hstats-num em {
+    font-style: normal;
+    font-size: 14px;
+    font-weight: 500;
+    color: #353535;
+}
+
+.hstats-bar {
+    flex: 1;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.hstats-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hstats-bar--blue {
+    background: linear-gradient(90deg, #4a8ae8, #7ab3f8);
+}
+.hstats-bar--green {
+    background: linear-gradient(90deg, #44b866, #5b9cf5);
+}
+
+/* ─── Bottom chips ─── */
+.hstats-chips {
+    display: flex;
+    border-top: 1px solid #212121;
+}
+
+.hstats-chip {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 18px;
+}
+
+.hstats-chip + .hstats-chip {
+    border-left: 1px solid #212121;
+}
+
+.hstats-chip svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    opacity: 0.5;
+}
+
+.hstats-chip b {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.hstats-chip--done {
+    color: #50c46a;
+}
+.hstats-chip--skip {
+    color: #6a7a9a;
+}
+.hstats-chip--bad {
+    color: #e8463d;
+}
+
+.hstats-chip .hstats-chip-lbl {
+    font-size: 11px;
+    font-weight: 500;
+    color: #3e3e3e;
 }
 
 .habits-section {

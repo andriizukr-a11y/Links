@@ -646,64 +646,61 @@ function renderHabits() {
     totalSkipped += h.skippedDates ? h.skippedDates.length : 0;
   });
 
-  const totalScore = totalCompleted - totalSkipped - totalBadActive;
-  const totalPossible = totalCompleted + totalSkipped + totalBadActive;
+  // Ефективність — останні 30 днів
+  const d30ago = new Date();
+  d30ago.setDate(d30ago.getDate() - 29);
+  const cutoff = getLocalDateStr(d30ago);
+
+  let r30Completed = 0,
+    r30Skipped = 0,
+    r30Bad = 0;
+  goodHabits.forEach((h) => {
+    r30Completed += h.dates.filter((d) => d >= cutoff).length;
+    r30Skipped += h.skippedDates
+      ? h.skippedDates.filter((d) => d >= cutoff).length
+      : 0;
+  });
+  badHabits.forEach((h) => {
+    r30Bad += h.dates.filter((d) => d >= cutoff).length;
+    r30Skipped += h.skippedDates
+      ? h.skippedDates.filter((d) => d >= cutoff).length
+      : 0;
+  });
+
+  const r30Possible = r30Completed + r30Skipped + r30Bad;
   const efficiency =
-    totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
-  const grade =
-    efficiency >= 90
-      ? "S"
-      : efficiency >= 75
-        ? "A"
-        : efficiency >= 60
-          ? "B"
-          : efficiency >= 40
-            ? "C"
-            : "D";
-  const gradeClass = `grade-${grade.toLowerCase()}`;
+    r30Possible > 0 ? Math.round((r30Completed / r30Possible) * 100) : 0;
   const todayDone = goodHabits.filter((h) => h.dates.includes(today)).length;
   const todayTotal = goodHabits.length;
-  const scoreClass = totalScore >= 0 ? "positive" : "negative";
-  const scoreIcon = totalScore >= 0 ? "⭐" : "⚠️";
+  const todayPct =
+    todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0;
+
+  const svgCheck = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  const svgSkip = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`;
+  const svgBad = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
 
   let html = `
     <div class="habits-stats">
-      <div class="stat-top-row">
-        <div class="stat-formula">
-          <div class="formula-chip positive">
-            <span class="chip-icon">✅</span>
-            <span class="chip-value">${totalCompleted}</span>
-            <span class="chip-label">виконано</span>
-          </div>
-          <span class="formula-op">−</span>
-          <div class="formula-chip skipped">
-            <span class="chip-icon">❄️</span>
-            <span class="chip-value">${totalSkipped}</span>
-            <span class="chip-label">пропущено</span>
-          </div>
-          <span class="formula-op">−</span>
-          <div class="formula-chip bad">
-            <span class="chip-icon">⛔</span>
-            <span class="chip-value">${totalBadActive}</span>
-            <span class="chip-label">погані</span>
-          </div>
-          <span class="formula-equal">=</span>
-          <div class="formula-chip total ${scoreClass}">
-            <span class="chip-icon">${scoreIcon}</span>
-            <span class="chip-value">${totalScore}</span>
-            <span class="chip-label">результат</span>
+      <div class="hstats-panels">
+        <div class="hstats-panel">
+          <div class="hstats-panel-label">Сьогодні</div>
+          <div class="hstats-panel-row">
+            <span class="hstats-num">${todayDone}<em> / ${todayTotal}</em></span>
+            <div class="hstats-bar"><div class="hstats-bar-fill hstats-bar--blue" style="width:${todayPct}%"></div></div>
           </div>
         </div>
-        <div class="stat-right">
-          <div class="stat-grade ${gradeClass}">${grade}</div>
-          <div class="stat-today">сьогодні <strong>${todayDone} / ${todayTotal}</strong></div>
+        <div class="hstats-panel">
+          <div class="hstats-panel-label">Ефективність <span class="hstats-period">за 30 днів</span></div>
+          <div class="hstats-panel-row">
+            <span class="hstats-num">${efficiency}<em>%</em></span>
+            <div class="hstats-bar"><div class="hstats-bar-fill hstats-bar--green" style="width:${efficiency}%"></div></div>
+          </div>
         </div>
       </div>
-      <div class="stat-progress-wrap">
-        <div class="stat-progress-bar">
-          <div class="stat-progress-fill" style="width: ${efficiency}%"></div>
-        </div>
-        <span class="stat-efficiency">${efficiency}%</span>
+      <div class="hstats-chips">
+        <div class="hstats-chip hstats-chip--done">${svgCheck}<b>${totalCompleted}</b><span class="hstats-chip-lbl">виконано</span></div>
+        <div class="hstats-chip hstats-chip--skip">${svgSkip}<b>${totalSkipped}</b><span class="hstats-chip-lbl">пропущено</span></div>
+        <div class="hstats-chip hstats-chip--bad">${svgBad}<b>${totalBadActive}</b><span class="hstats-chip-lbl">порушено</span></div>
       </div>
     </div>
   `;

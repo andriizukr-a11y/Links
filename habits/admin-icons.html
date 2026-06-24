@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="uk">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Admin Icons — Habits</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    "Segoe UI",
+                    Roboto,
+                    "Helvetica Neue",
+                    Arial,
+                    sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+                color: #333;
+            }
+
+            .container {
+                max-width: 1100px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                text-align: center;
+                color: #fff;
+                margin-bottom: 30px;
+                font-size: 28px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .main-grid {
+                display: grid;
+                grid-template-columns: 1fr 1.2fr;
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+
+            @media (max-width: 768px) {
+                .main-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .card {
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+
+            .card h2 {
+                font-size: 18px;
+                margin-bottom: 16px;
+                color: #333;
+                border-bottom: 2px solid #667eea;
+                padding-bottom: 12px;
+            }
+
+            /* FORM */
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #666;
+                margin-bottom: 6px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-size: 14px;
+                font-family: inherit;
+                transition: border-color 0.2s;
+                resize: vertical;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+            .form-group textarea {
+                min-height: 100px;
+                font-family: "Courier New", monospace;
+                font-size: 12px;
+            }
+
+            /* PREVIEW */
+            .preview-box {
+                width: 100%;
+                height: 80px;
+                border: 1px solid #eee;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #fafafa;
+                overflow: hidden;
+            }
+
+            .preview-box svg {
+                width: 50px;
+                height: 50px;
+                stroke: #667eea;
+            }
+
+            .preview-box.empty {
+                color: #ccc;
+                font-size: 12px;
+            }
+
+            /* BUTTONS */
+            .button-group {
+                display: flex;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            button {
+                flex: 1;
+                padding: 12px 16px;
+                border: none;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+
+            .btn-primary:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+
+            .btn-primary:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .btn-secondary {
+                background: #f0f0f0;
+                color: #333;
+            }
+
+            .btn-secondary:hover {
+                background: #e0e0e0;
+            }
+
+            /* ICONS GRID */
+            .icons-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 12px;
+                max-height: 500px;
+                overflow-y: auto;
+            }
+
+            .icon-cell {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 10px;
+                border: 1px solid #eee;
+                border-radius: 8px;
+                background: #fafafa;
+                position: relative;
+                transition: all 0.2s;
+            }
+
+            .icon-cell:hover {
+                background: #f0f0ff;
+                border-color: #667eea;
+            }
+
+            .icon-preview-small {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .icon-preview-small svg {
+                width: 28px;
+                height: 28px;
+                stroke: #667eea;
+            }
+
+            .icon-name {
+                font-size: 10px;
+                font-weight: 600;
+                color: #333;
+                text-align: center;
+                word-break: break-word;
+                max-width: 100%;
+            }
+
+            .icon-delete-btn {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                width: 24px;
+                height: 24px;
+                padding: 0;
+                background: #ff6b6b;
+                color: white;
+                border: 2px solid white;
+                border-radius: 50%;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                opacity: 0;
+                transition: all 0.2s;
+            }
+
+            .icon-cell:hover .icon-delete-btn {
+                opacity: 1;
+            }
+
+            .icon-delete-btn:hover {
+                background: #ff5252;
+            }
+
+            /* TOAST */
+            .toast {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #333;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 6px;
+                opacity: 0;
+                transition: opacity 0.3s;
+                z-index: 1000;
+            }
+
+            .toast.show {
+                opacity: 1;
+            }
+
+            .toast.success {
+                background: #4caf50;
+            }
+
+            .toast.error {
+                background: #ff6b6b;
+            }
+
+            .info-box {
+                background: #e3f2fd;
+                border-left: 4px solid #2196f3;
+                padding: 12px;
+                border-radius: 4px;
+                font-size: 13px;
+                color: #1565c0;
+                margin-bottom: 16px;
+            }
+
+            .export-section {
+                margin-top: 20px;
+            }
+
+            .export-code {
+                background: #f5f5f5;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                padding: 12px;
+                font-family: "Courier New", monospace;
+                font-size: 11px;
+                overflow-x: auto;
+                max-height: 200px;
+                overflow-y: auto;
+                color: #333;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+
+            .status {
+                font-size: 12px;
+                color: #999;
+                margin-top: 8px;
+                text-align: center;
+            }
+
+            .status.success {
+                color: #4caf50;
+            }
+
+            .status.error {
+                color: #ff6b6b;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🎨 Admin Icons Manager</h1>
+
+            <div class="main-grid">
+                <!-- LEFT: ADD ICON -->
+                <div class="card">
+                    <h2>➕ Додати іконку</h2>
+
+                    <div class="info-box">
+                        Вставь SVG код, вводиш назву (id) → додаєш → видаляєш з
+                        списку
+                    </div>
+
+                    <div class="form-group">
+                        <label>Назва іконки (id)</label>
+                        <input
+                            type="text"
+                            id="iconName"
+                            placeholder="e.g., candy, donut, cupcake"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label>SVG Код</label>
+                        <textarea
+                            id="svgCode"
+                            placeholder='<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">...'
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Preview</label>
+                        <div class="preview-box empty" id="preview">
+                            Превью тут
+                        </div>
+                    </div>
+
+                    <p class="status" id="status"></p>
+
+                    <div class="button-group">
+                        <button class="btn-primary" id="addBtn">
+                            Додати іконку
+                        </button>
+                        <button class="btn-secondary" id="clearBtn">
+                            Очистити
+                        </button>
+                    </div>
+
+                    <!-- EXPORT FULL ARRAY -->
+                    <div class="export-section">
+                        <h3 style="font-size: 14px; margin-bottom: 12px">
+                            📋 Експорт массива
+                        </h3>
+                        <p
+                            style="
+                                font-size: 12px;
+                                color: #666;
+                                margin-bottom: 10px;
+                            "
+                        >
+                            Копіюй це в <code>icons.js</code>:
+                        </p>
+                        <div class="export-code" id="exportCode">
+                            const ICONS = [ ... ]
+                        </div>
+                        <button
+                            class="btn-primary"
+                            id="copyExportBtn"
+                            style="margin-top: 10px"
+                        >
+                            Копіювати массив
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT: CURRENT ICONS -->
+                <div class="card">
+                    <h2>📋 Поточні іконки (натисни X для видалення)</h2>
+
+                    <div class="info-box">
+                        <strong>{{ iconCount }}</strong> іконок. Клікни красний
+                        X для видалення.
+                    </div>
+
+                    <div class="icons-grid" id="iconsList">
+                        <!-- Icons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <script>
+            // ============= STATE =============
+            let icons = [];
+
+            // Завантажуємо з localStorage (мок для icons.js)
+            function loadIcons() {
+                const stored = localStorage.getItem("admin-icons");
+                if (stored) {
+                    try {
+                        icons = JSON.parse(stored);
+                    } catch (e) {
+                        icons = getDefaultIcons();
+                    }
+                } else {
+                    icons = getDefaultIcons();
+                    saveIcons();
+                }
+            }
+
+            function getDefaultIcons() {
+                return [
+                    { id: "dollar-sign", name: "Доллар" },
+                    { id: "activity", name: "Активність" },
+                    { id: "book", name: "Книга" },
+                    { id: "dumbbell", name: "Гантель" },
+                    { id: "brain", name: "Мозок" },
+                    { id: "droplet", name: "Крапля" },
+                    { id: "apple", name: "Яблуко" },
+                    { id: "music", name: "Музика" },
+                    { id: "laptop", name: "Ноутбук" },
+                    { id: "pen", name: "Ручка" },
+                    { id: "palette", name: "Палітра" },
+                    { id: "target", name: "Ціль" },
+                    { id: "flame", name: "Полум'я" },
+                    { id: "star", name: "Зірка" },
+                    { id: "heart", name: "Серце" },
+                    { id: "bike", name: "Велосипед" },
+                    { id: "pill", name: "Таблетка" },
+                    { id: "briefcase", name: "Портфель" },
+                    { id: "egg", name: "Яйце" },
+                    { id: "candy", name: "Цукерка" },
+                    { id: "cupcake", name: "Кекс" },
+                    { id: "donut", name: "Пончик" },
+                ];
+            }
+
+            function saveIcons() {
+                localStorage.setItem("admin-icons", JSON.stringify(icons));
+                renderIcons();
+                updateExportCode();
+            }
+
+            // ============= DOM ELEMENTS =============
+            const iconNameInput = document.getElementById("iconName");
+            const svgCodeInput = document.getElementById("svgCode");
+            const previewBox = document.getElementById("preview");
+            const addBtn = document.getElementById("addBtn");
+            const clearBtn = document.getElementById("clearBtn");
+            const status = document.getElementById("status");
+            const iconsList = document.getElementById("iconsList");
+            const toast = document.getElementById("toast");
+            const exportCode = document.getElementById("exportCode");
+            const copyExportBtn = document.getElementById("copyExportBtn");
+
+            // ============= LIVE PREVIEW =============
+            svgCodeInput.addEventListener("input", () => {
+                try {
+                    const svg = svgCodeInput.value.trim();
+                    if (svg && svg.startsWith("<svg")) {
+                        previewBox.innerHTML = svg;
+                        previewBox.classList.remove("empty");
+                    } else {
+                        previewBox.innerHTML = "Превью тут";
+                        previewBox.classList.add("empty");
+                    }
+                } catch (e) {
+                    previewBox.innerHTML = "Помилка SVG";
+                    previewBox.classList.add("empty");
+                }
+            });
+
+            // ============= ADD ICON =============
+            addBtn.addEventListener("click", () => {
+                const name = iconNameInput.value.trim();
+                const svg = svgCodeInput.value.trim();
+
+                if (!name) {
+                    showToast("Введи назву іконки!", "error");
+                    return;
+                }
+
+                if (!svg) {
+                    showToast("Введи SVG код!", "error");
+                    return;
+                }
+
+                if (!svg.startsWith("<svg")) {
+                    showToast("Це не SVG код!", "error");
+                    return;
+                }
+
+                // Перевіряємо дублікат
+                if (icons.some((i) => i.id === name)) {
+                    showToast("Іконка з такою назвою вже існує!", "error");
+                    return;
+                }
+
+                // Додаємо нову іконку
+                icons.push({
+                    id: name,
+                    name: name,
+                    svg: svg,
+                });
+
+                saveIcons();
+                showToast(`✓ Іконка "${name}" додана!`, "success");
+
+                // Очищаємо форму
+                iconNameInput.value = "";
+                svgCodeInput.value = "";
+                previewBox.innerHTML = "Превью тут";
+                previewBox.classList.add("empty");
+                status.textContent = "";
+            });
+
+            // ============= CLEAR FORM =============
+            clearBtn.addEventListener("click", () => {
+                iconNameInput.value = "";
+                svgCodeInput.value = "";
+                previewBox.innerHTML = "Превью тут";
+                previewBox.classList.add("empty");
+                status.textContent = "";
+                showToast("Очищено", "success");
+            });
+
+            // ============= RENDER ICONS =============
+            function renderIcons() {
+                iconsList.innerHTML = "";
+
+                icons.forEach((icon) => {
+                    const cell = document.createElement("div");
+                    cell.className = "icon-cell";
+
+                    const svg =
+                        icon.svg ||
+                        '<svg><circle cx="12" cy="12" r="10"></circle></svg>';
+
+                    cell.innerHTML = `
+          <div class="icon-preview-small">${svg}</div>
+          <div class="icon-name">${icon.id}</div>
+          <button class="icon-delete-btn" title="Видалити">×</button>
+        `;
+
+                    cell.querySelector(".icon-delete-btn").addEventListener(
+                        "click",
+                        (e) => {
+                            e.stopPropagation();
+                            deleteIcon(icon.id);
+                        },
+                    );
+
+                    iconsList.appendChild(cell);
+                });
+            }
+
+            // ============= DELETE ICON =============
+            function deleteIcon(id) {
+                const index = icons.findIndex((i) => i.id === id);
+                if (index !== -1) {
+                    const name = icons[index].id;
+                    icons.splice(index, 1);
+                    saveIcons();
+                    showToast(`✗ Іконка "${name}" видалена!`, "success");
+                }
+            }
+
+            // ============= EXPORT CODE =============
+            function updateExportCode() {
+                const code = `const ICONS = [
+${icons
+    .map((icon) => {
+        const svg = icon.svg ? icon.svg.replace(/'/g, "\\'") : "";
+        return `  {
+    id: "${icon.id}",
+    svg: '${svg}',
+  }`;
+    })
+    .join(",\n")}
+];`;
+
+                exportCode.textContent = code;
+            }
+
+            copyExportBtn.addEventListener("click", () => {
+                const code = exportCode.textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast("✓ Массив скопійовано!", "success");
+                    copyExportBtn.textContent = "✓ Скопійовано";
+                    setTimeout(() => {
+                        copyExportBtn.textContent = "Копіювати массив";
+                    }, 2000);
+                });
+            });
+
+            // ============= UTILS =============
+            function showToast(message, type = "success") {
+                toast.textContent = message;
+                toast.className = "toast show " + type;
+                setTimeout(() => {
+                    toast.classList.remove("show");
+                }, 2500);
+            }
+
+            // ============= INIT =============
+            loadIcons();
+            renderIcons();
+            updateExportCode();
+        </script>
+    </body>
+</html>
