@@ -188,15 +188,17 @@ function initHabits() {
   <div class="modal">
     <h3>Нова звичка</h3>
     <input type="text" id="habitName" placeholder="наприклад, Спорт" maxlength="30">
+    <div class="modal-section-label">Іконка</div>
     <div class="icon-picker" id="iconPicker"></div>
+    <div class="modal-section-label">Тип звички</div>
     <div class="type-selector">
       <label class="type-option">
         <input type="radio" name="habitType" value="good" checked>
-        <span class="type-label good">✅ Корисна</span>
+        <span class="type-label good">Корисна</span>
       </label>
       <label class="type-option">
         <input type="radio" name="habitType" value="bad">
-        <span class="type-label bad">❌ Шкідлива</span>
+        <span class="type-label bad">Шкідлива</span>
       </label>
     </div>
     <div class="reminder-settings">
@@ -217,15 +219,17 @@ function initHabits() {
   <div class="modal">
     <h3>Редагувати звичку</h3>
     <input type="text" id="editHabitName" placeholder="наприклад, Спорт" maxlength="30">
+    <div class="modal-section-label">Іконка</div>
     <div class="icon-picker" id="editIconPicker"></div>
+    <div class="modal-section-label">Тип звички</div>
     <div class="type-selector">
       <label class="type-option">
         <input type="radio" name="editHabitType" value="good">
-        <span class="type-label good">✅ Корисна</span>
+        <span class="type-label good">Корисна</span>
       </label>
       <label class="type-option">
         <input type="radio" name="editHabitType" value="bad">
-        <span class="type-label bad">❌ Шкідлива</span>
+        <span class="type-label bad">Шкідлива</span>
       </label>
     </div>
     <div class="reminder-settings">
@@ -643,21 +647,66 @@ function renderHabits() {
   });
 
   const totalScore = totalCompleted - totalSkipped - totalBadActive;
+  const totalPossible = totalCompleted + totalSkipped + totalBadActive;
+  const efficiency =
+    totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+  const grade =
+    efficiency >= 90
+      ? "S"
+      : efficiency >= 75
+        ? "A"
+        : efficiency >= 60
+          ? "B"
+          : efficiency >= 40
+            ? "C"
+            : "D";
+  const gradeClass = `grade-${grade.toLowerCase()}`;
+  const todayDone = goodHabits.filter((h) => h.dates.includes(today)).length;
+  const todayTotal = goodHabits.length;
+  const scoreClass = totalScore >= 0 ? "positive" : "negative";
+  const scoreIcon = totalScore >= 0 ? "⭐" : "⚠️";
 
-  // Додаємо тільки формулу по центру
   let html = `
-    <div class="habits-stats formula-only">
-      <div class="stat-formula" title="Формула: виконані − пропущені − погані">
-        <span class="formula-item positive">${totalCompleted}</span>
-        <span class="formula-op">−</span>
-        <span class="formula-item skipped">${totalSkipped}</span>
-        <span class="formula-op">−</span>
-        <span class="formula-item bad">${totalBadActive}</span>
-        <span class="formula-equal">=</span>
-        <span class="formula-total ${totalScore >= 0 ? "positive" : "negative"}">${totalScore}</span>
+    <div class="habits-stats">
+      <div class="stat-top-row">
+        <div class="stat-formula">
+          <div class="formula-chip positive">
+            <span class="chip-icon">✅</span>
+            <span class="chip-value">${totalCompleted}</span>
+            <span class="chip-label">виконано</span>
+          </div>
+          <span class="formula-op">−</span>
+          <div class="formula-chip skipped">
+            <span class="chip-icon">❄️</span>
+            <span class="chip-value">${totalSkipped}</span>
+            <span class="chip-label">пропущено</span>
+          </div>
+          <span class="formula-op">−</span>
+          <div class="formula-chip bad">
+            <span class="chip-icon">⛔</span>
+            <span class="chip-value">${totalBadActive}</span>
+            <span class="chip-label">погані</span>
+          </div>
+          <span class="formula-equal">=</span>
+          <div class="formula-chip total ${scoreClass}">
+            <span class="chip-icon">${scoreIcon}</span>
+            <span class="chip-value">${totalScore}</span>
+            <span class="chip-label">результат</span>
+          </div>
+        </div>
+        <div class="stat-right">
+          <div class="stat-grade ${gradeClass}">${grade}</div>
+          <div class="stat-today">сьогодні <strong>${todayDone} / ${todayTotal}</strong></div>
+        </div>
+      </div>
+      <div class="stat-progress-wrap">
+        <div class="stat-progress-bar">
+          <div class="stat-progress-fill" style="width: ${efficiency}%"></div>
+        </div>
+        <span class="stat-efficiency">${efficiency}%</span>
       </div>
     </div>
-`;
+  `;
   if (goodHabits.length > 0) {
     html += '<div class="habits-section">';
     html += goodHabits.map(renderHabitCard).join("");
