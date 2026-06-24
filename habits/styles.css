@@ -35,12 +35,148 @@ body {
 }
 
 .habits-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.habits-stats {
+    display: block;
+    text-align: center;
+    margin: 0 auto 12px auto;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    width: 100%;
+    max-width: 920px;
+}
+
+.habits-stats.formula-only {
+    padding: 4px 0;
+}
+
+.stat-formula {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    color: #e6eefc;
+}
+
+.formula-item {
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.formula-item.positive {
+    background: rgba(76, 175, 80, 0.10);
+    color: #55d27a;
+}
+
+.formula-item.skipped {
+    background: rgba(160, 160, 160, 0.06);
+    color: #c8c8c8;
+}
+
+.formula-item.bad {
+    background: rgba(248, 81, 73, 0.08);
+    color: #f85149;
+}
+
+.formula-op,
+.formula-equal {
+    color: #9aa6bf;
+    font-weight: 500;
+    margin: 0 4px;
+}
+
+.formula-total {
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+    min-width: 48px;
+    text-align: center;
+}
+
+.formula-total.positive {
+    background: rgba(91, 156, 245, 0.12);
+    color: #5b9cf5;
+}
+
+.formula-total.negative {
+    background: rgba(248, 81, 73, 0.10);
+    color: #f85149;
+}
+
+.stat-items-compact {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.stat-item.small {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    color: #9aa6bf;
+}
+
+.stat-item.small .stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e8e8e8;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #a0a0a0;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #5b9cf5;
+}
+
+.habits-section {
     display: grid;
     grid-template-columns: repeat(2, min-content);
     gap: 20px;
-    justify-content: center;  /* центруємо всю сітку по горизонталі */
-    width: fit-content;        /* контейнер займає рівно ширину сітки */
-    margin: 0 auto;            /* центруємо контейнер на сторінці */
+    justify-content: center;
+    width: fit-content;
+}
+
+.section-title {
+    grid-column: 1 / -1;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.section-title.good {
+    color: #4ac06a;
+}
+
+.section-title.bad {
+    color: #f85149;
 }
 
 .habit-card {
@@ -53,6 +189,23 @@ body {
     gap: 20px;
     position: relative;
     user-select: none;
+}
+
+.habit-card.bad-habit {
+    background: #1a1818;
+    border-color: #4a2c2c;
+}
+
+.habit-card.bad-habit .day-cell.active {
+    background: #f85149;
+}
+
+.habit-card.bad-habit .streak-badge {
+    color: #f85149;
+}
+
+.habit-card.bad-habit .streak-badge svg {
+    stroke: #f85149;
 }
 
 .habit-drag-handle {
@@ -547,6 +700,50 @@ body {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.type-selector {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.type-option {
+    flex: 1;
+    cursor: pointer;
+}
+
+.type-option input {
+    display: none;
+}
+
+.type-label {
+    display: block;
+    padding: 10px 16px;
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.type-option input:checked + .type-label.good {
+    background: #4ac06a;
+    border-color: #4ac06a;
+    color: #000;
+}
+
+.type-option input:checked + .type-label.bad {
+    background: #f85149;
+    border-color: #f85149;
+    color: #fff;
+}
+
+.type-option input:not(:checked) + .type-label:hover {
+    border-color: #555;
+}
     margin-bottom: 20px;
 }
 
@@ -1097,7 +1294,19 @@ body {
   height: 18px;
 }
 
+.streak-badge.bad-streak {
+  color: #f85149;
+}
+
+.streak-badge.bad-streak svg {
+  color: #f85149;
+}
+
 .streak-count {
   min-width: 20px;
   padding-left: 3px;
+}
+
+.bad-streak .streak-count {
+  color: #f85149;
 }

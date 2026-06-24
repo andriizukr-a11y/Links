@@ -4,6 +4,14 @@
 let cachedYearDates = null;
 let cachedYear = null;
 
+// Глобальна функція для отримання локальної дати
+window.getLocalDateStr = function(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function clearYearDatesCache() {
   cachedYearDates = null;
   cachedYear = null;
@@ -12,10 +20,7 @@ function clearYearDatesCache() {
 // These are pure utility functions that don't depend on global state
 
 function getLocalDateStr(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return window.getLocalDateStr(date);
 }
 
 function getYearDates() {
@@ -59,9 +64,63 @@ function getMonthData(dates) {
   return months.map(m => ({ month: m, count: counts[m] }));
 }
 
-function getStreak(dates, skippedDates = []) {
+function getStreak(dates, skippedDates = [], habitType = 'good') {
   if (!dates || dates.length === 0) return 0;
 
+  // Для шкідливих звичок streak працює навпаки - рахуємо дні без звички
+  if (habitType === 'bad') {
+    const datesSet = new Set(dates);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Знаходимо найпізнішу дату коли була шкідлива звичка
+    const sortedDates = [...dates].sort();
+    let lastBadDate = sortedDates.length > 0 ? new Date(sortedDates[sortedDates.length - 1]) : null;
+    
+    if (lastBadDate) {
+      lastBadDate.setHours(0, 0, 0, 0);
+      
+      // Якщо остання шкідлива звичка була сьогодні, streak = 0
+      if (getLocalDateStr(lastBadDate) === getLocalDateStr(today)) {
+        return 0;
+      }
+      
+      // Рахуємо дні без шкідливої звички від lastBadDate+1 до today
+      let streak = 0;
+      let checkDate = new Date(lastBadDate);
+      checkDate.setDate(checkDate.getDate() + 1);
+      
+      while (checkDate <= today) {
+        const dateStr = getLocalDateStr(checkDate);
+        if (!datesSet.has(dateStr)) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() + 1);
+        } else {
+          // Якщо знайдено шкідливу звичку, перериваємо серію
+          break;
+        }
+      }
+      return streak;
+    } else {
+      // Якщо немає жодної шкідливої звички, рахуємо дні з початку року
+      const yearStart = new Date(today.getFullYear(), 0, 1);
+      let streak = 0;
+      let checkDate = new Date(yearStart);
+      
+      while (checkDate <= today) {
+        const dateStr = getLocalDateStr(checkDate);
+        if (!datesSet.has(dateStr)) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() + 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+  }
+
+  // Звичайна логіка для корисних звичок
   const datesSet = new Set(dates);
   const skippedSet = new Set(skippedDates);
   
@@ -126,4 +185,14 @@ function getLongestStreak(dates) {
   }
 
   return max;
+}
+
+// Make functions globally available
+if (typeof window !== 'undefined') {
+  window.getLocalDateStr = getLocalDateStr;
+  window.getYearDates = getYearDates;
+  window.getMonthData = getMonthData;
+  window.getStreak = getStreak;
+  window.getLongestStreak = getLongestStreak;
+  window.clearYearDatesCache = clearYearDatesCache;
 }
