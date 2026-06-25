@@ -55,7 +55,7 @@ function openModal() {
     'input[name="habitType"][value="good"]',
   );
   if (typeGood) typeGood.checked = true;
-  document.getElementById('habitName').focus();
+  document.getElementById("habitName").focus();
 }
 
 function closeModal() {
@@ -88,8 +88,8 @@ function openEditModal(habitId) {
     document.getElementById("editReminderTime").style.display = "none";
   }
 
-  document.getElementById('editModal').classList.add('open');
-  document.getElementById('editHabitName').focus();
+  document.getElementById("editModal").classList.add("open");
+  document.getElementById("editHabitName").focus();
 }
 
 function closeEditModal() {
@@ -184,6 +184,20 @@ function deleteHabitFromEditModal() {
     closeEditModal();
     openDeleteModal(editingHabitId);
   }
+}
+
+function toggleHabitType(habitId, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const habit = habits.find((h) => h.id === habitId);
+  if (!habit) return;
+
+  // Перемикаємо тип
+  habit.type = habit.type === "bad" ? "good" : "bad";
+  saveHabits();
+  renderHabits();
 }
 
 function toggleReminderTimeInput(checkboxId, timeInputId) {

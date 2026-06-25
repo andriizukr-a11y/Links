@@ -240,8 +240,8 @@ function initHabits() {
       <input type="time" id="editReminderTime" class="reminder-time-input" style="display: none;" value="09:00">
     </div>
     <div class="modal-buttons">
-      <button class="modal-btn cancel" onclick="closeEditModal()">Скасувати</button>
       <button class="modal-btn danger" onclick="deleteHabitFromEditModal()">Видалити</button>
+      <button class="modal-btn cancel" onclick="closeEditModal()">Скасувати</button>
       <button class="modal-btn save" onclick="saveEditHabit()">Зберегти</button>
     </div>
   </div>
@@ -674,6 +674,13 @@ function renderHabits() {
               `
                   : ""
               }
+              <div class="habit-type-badge ${habitType === "bad" ? "bad" : "good"}" onclick="toggleHabitType(${habit.id}, event)" title="Натисніть, щоб змінити тип">
+                ${
+                  habitType === "bad"
+                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`
+                    : `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+                }
+              </div>
               <div class="habit-checkbox ${habitType === "bad" ? "bad-checkbox" : ""} ${isDoneToday ? "done" : ""} ${isSkippedToday ? "skipped" : ""}" onclick="toggleToday(${habit.id}, event)" oncontextmenu="toggleSkippedDate(${habit.id}, '${today}', event)">
                 ${
                   isSkippedToday
@@ -769,16 +776,10 @@ function renderHabits() {
       </div>
     </div>
   `;
-  if (goodHabits.length > 0) {
+  // Всі звички в одній секції — у порядку їх розташування в масиві
+  if (habits.length > 0) {
     html += '<div class="habits-section">';
-    html += goodHabits.map(renderHabitCard).join("");
-    html += "</div>";
-  }
-
-  // Додаємо шкідливі звички
-  if (badHabits.length > 0) {
-    html += '<div class="habits-section">';
-    html += badHabits.map(renderHabitCard).join("");
+    html += habits.map(renderHabitCard).join("");
     html += "</div>";
   }
 
