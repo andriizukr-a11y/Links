@@ -665,6 +665,8 @@ body {
 .habits-actions.show-actions .notification-btn,
 .habits-actions.show-actions .add-btn {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .export-btn {
@@ -682,6 +684,8 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.15s;
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .import-btn {
@@ -699,6 +703,8 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.15s;
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .export-btn svg,
@@ -733,6 +739,8 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.15s;
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .sync-btn svg {
@@ -775,6 +783,8 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.15s;
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .stats-btn svg {
@@ -803,6 +813,8 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.15s;
     opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .notification-btn svg {
@@ -831,6 +843,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.15s;
     opacity: 0.2;
+    pointer-events: auto;
 }
 
 .add-btn svg {
