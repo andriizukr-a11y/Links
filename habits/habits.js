@@ -30,6 +30,10 @@ habits = habits.map((habit) => {
   if (!habit.type) {
     return { ...habit, type: "good" };
   }
+  // Додаємо cleanDates якщо його немає
+  if (!habit.cleanDates) {
+    return { ...habit, cleanDates: [] };
+  }
   return habit;
 });
 
@@ -553,6 +557,12 @@ function renderHabits() {
     const isDoneToday = habit.dates.includes(today);
     const isSkippedToday =
       habit.skippedDates && habit.skippedDates.includes(today);
+    const isCleanToday =
+      habitType === "bad" &&
+      habit.cleanDates &&
+      habit.cleanDates.includes(today) &&
+      !isDoneToday &&
+      !isSkippedToday;
     const maxMonth =
       monthData.length > 0 ? Math.max(...monthData.map((m) => m.count), 1) : 1;
     const habitType = habit.type || "good";
@@ -569,6 +579,10 @@ function renderHabits() {
     // сусідніми відміченими клітинками (і від останньої до сьогодні)
     const cleanDatesSet = new Set();
     if (habitType === "bad") {
+      // Додаємо ручні cleanDates (позначені правою кнопкою миші)
+      if (habit.cleanDates) {
+        habit.cleanDates.forEach((d) => cleanDatesSet.add(d));
+      }
       const sortedDates = [...habit.dates].sort();
       for (let i = 0; i < sortedDates.length - 1; i++) {
         const from = sortedDates[i];
@@ -620,18 +634,25 @@ function renderHabits() {
         const [year, month, day] = dateStr.split("-");
         const displayDate = `${day}.${month}`;
 
+        // Для шкідливих звичок правий клік = позначити як "чистий" (clean)
+        // Для звичайних звичок правий клік = пропустити (skipped)
+        const rightClickHandler =
+          habitType === "bad"
+            ? `toggleCleanDate(${habit.id}, '${dateStr}', event)`
+            : `toggleSkippedDate(${habit.id}, '${dateStr}', event)`;
+
         if (isPadding) {
           // Клітинки з попереднього/наступного року - можна натискати, але вони з іншим стилем
           heatmapHTML += `<div class="day-cell padding ${isActive ? "active" : ""} ${isSkipped ? "skipped" : ""} ${isHalf ? "half" : ""} ${isClean ? "clean" : ""}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
-            oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
+            oncontextmenu="${rightClickHandler}"
             onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
         } else {
           // Клітинки поточного року
           heatmapHTML += `<div class="day-cell ${isActive ? "active" : ""} ${isSkipped ? "skipped" : ""} ${isHalf ? "half" : ""} ${isToday ? "today" : ""} ${isFuture ? "future" : ""} ${isClean ? "clean" : ""}"
           onclick="toggleDate(${habit.id}, '${dateStr}', event)"
-          oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
+          oncontextmenu="${rightClickHandler}"
           onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
           data-date="${displayDate}"></div>`;
         }
@@ -686,13 +707,15 @@ function renderHabits() {
               `
                     : ""
               }
-              <div class="habit-checkbox ${habitType === "bad" ? "bad-checkbox" : ""} ${isDoneToday ? "done" : ""} ${isSkippedToday ? "skipped" : ""}" onclick="toggleToday(${habit.id}, event)" oncontextmenu="toggleSkippedDate(${habit.id}, '${today}', event)">
+              <div class="habit-checkbox ${habitType === "bad" ? "bad-checkbox" : ""} ${isDoneToday ? "done" : ""} ${isSkippedToday ? "skipped" : ""} ${isCleanToday ? "clean" : ""}" onclick="toggleToday(${habit.id}, event)" oncontextmenu="${habitType === "bad" ? `toggleCleanDate(${habit.id}, '${today}', event)` : `toggleSkippedDate(${habit.id}, '${today}', event)`}">
                 ${
                   isSkippedToday
                     ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`
-                    : habitType === "bad"
-                      ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`
-                      : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+                    : isCleanToday
+                      ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+                      : habitType === "bad"
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`
+                        : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
                 }
               </div>
             </div>

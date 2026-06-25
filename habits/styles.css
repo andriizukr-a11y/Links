@@ -445,6 +445,16 @@ body {
     color: #f85149;
 }
 
+.habit-checkbox.bad-checkbox.clean {
+    background: rgba(56, 139, 253, 0.15);
+    border-color: #388bfd;
+    box-shadow: 0 0 6px rgba(56, 139, 253, 0.4);
+}
+
+.habit-checkbox.bad-checkbox.clean svg {
+    color: #388bfd;
+}
+
 .habit-icon {
     width: 36px;
     height: 36px;
