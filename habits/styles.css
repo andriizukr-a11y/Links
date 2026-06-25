@@ -393,6 +393,10 @@ body {
     border-color: rgba(91, 156, 245, 0.4);
 }
 
+.habit-checkbox:hover svg {
+    color: rgba(91, 156, 245, 0.5);
+}
+
 .habit-checkbox svg {
     width: 20px;
     height: 20px;
