@@ -47,7 +47,7 @@ body {
 /* ─── Stats Dashboard ─── */
 .habits-stats {
     width: 100%;
-    margin: 0 auto;
+    margin: 20px auto;
     background: #1b1b1b;
     border: 1px solid #262626;
     border-radius: 16px;

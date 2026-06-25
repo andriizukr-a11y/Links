@@ -739,7 +739,15 @@ function renderHabits() {
   const svgSkip = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`;
   const svgBad = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
 
-  let html = `
+  // Всі звички в одній секції — у порядку їх розташування в масиві
+  let html = "";
+  if (habits.length > 0) {
+    html += '<div class="habits-section">';
+    html += habits.map(renderHabitCard).join("");
+    html += "</div>";
+  }
+
+  html += `
     <div class="habits-stats" id="habitsStats">
       <button class="hstats-toggle" onclick="toggleStats()" title="Згорнути/розгорнути">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -769,12 +777,6 @@ function renderHabits() {
       </div>
     </div>
   `;
-  // Всі звички в одній секції — у порядку їх розташування в масиві
-  if (habits.length > 0) {
-    html += '<div class="habits-section">';
-    html += habits.map(renderHabitCard).join("");
-    html += "</div>";
-  }
 
   container.innerHTML = html;
 
