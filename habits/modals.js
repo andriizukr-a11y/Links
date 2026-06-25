@@ -186,20 +186,6 @@ function deleteHabitFromEditModal() {
   }
 }
 
-function toggleHabitType(habitId, event) {
-  if (event) {
-    event.stopPropagation();
-    event.preventDefault();
-  }
-  const habit = habits.find((h) => h.id === habitId);
-  if (!habit) return;
-
-  // Перемикаємо тип
-  habit.type = habit.type === "bad" ? "good" : "bad";
-  saveHabits();
-  renderHabits();
-}
-
 function toggleReminderTimeInput(checkboxId, timeInputId) {
   const checkbox = document.getElementById(checkboxId);
   const timeInput = document.getElementById(timeInputId);
