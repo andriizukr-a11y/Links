@@ -656,6 +656,11 @@ body {
     display: flex;
     gap: 12px;
     z-index: 100;
+    pointer-events: none;
+}
+
+.habits-actions.show-actions {
+    pointer-events: auto;
 }
 
 .habits-actions.show-actions .export-btn,
@@ -843,6 +848,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.15s;
     opacity: 0.2;
+    visibility: visible;
     pointer-events: auto;
 }
 
