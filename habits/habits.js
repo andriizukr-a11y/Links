@@ -337,9 +337,9 @@ function handleMiddleClick(habitId, dateStr, event) {
   }
 }
 
-function toggleToday(habitId) {
+function toggleToday(habitId, event) {
   const today = new Date().toISOString().split("T")[0];
-  toggleDate(habitId, today, null);
+  toggleDate(habitId, today, event);
 }
 
 function manualSync() {
@@ -409,6 +409,15 @@ function testNotification() {
     }
   } else {
     alert("Цей браузер не підтримує сповіщення");
+  }
+}
+
+function toggleStats() {
+  const statsBlock = document.getElementById("habitsStats");
+  if (statsBlock) {
+    statsBlock.classList.toggle("collapsed");
+    const isCollapsed = statsBlock.classList.contains("collapsed");
+    localStorage.setItem("habitsStatsCollapsed", isCollapsed);
   }
 }
 
@@ -537,6 +546,8 @@ function renderHabits() {
     const monthData =
       typeof getMonthData === "function" ? getMonthData(habit.dates) : [];
     const isDoneToday = habit.dates.includes(today);
+    const isSkippedToday =
+      habit.skippedDates && habit.skippedDates.includes(today);
     const maxMonth =
       monthData.length > 0 ? Math.max(...monthData.map((m) => m.count), 1) : 1;
     const habitType = habit.type || "good";
@@ -614,16 +625,27 @@ function renderHabits() {
           <div class="habit-header">
             <div class="habit-icon" onclick="openEditModal(${habit.id})">${iconSvg}</div>
             <div class="habit-name" onclick="openEditModal(${habit.id})">${habit.name}</div>
-            ${
-              streak > 0
-                ? `
-            <div class="streak-badge ${habitType === "bad" ? "bad-streak" : ""}" title="Серія: ${streak} днів поспіль">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
-              <span class="streak-count">${streak}</span>
+            <div class="habit-top-right" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+              ${
+                streak > 0
+                  ? `
+              <div class="streak-badge ${habitType === "bad" ? "bad-streak" : ""}" title="Серія: ${streak} днів поспіль">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+                <span class="streak-count">${streak}</span>
+              </div>
+              `
+                  : ""
+              }
+              <div class="habit-checkbox ${habitType === "bad" ? "bad-checkbox" : ""} ${isDoneToday ? "done" : ""} ${isSkippedToday ? "skipped" : ""}" onclick="toggleToday(${habit.id}, event)" oncontextmenu="toggleSkippedDate(${habit.id}, '${today}', event)">
+                ${
+                  isSkippedToday
+                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`
+                    : habitType === "bad"
+                      ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`
+                      : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+                }
+              </div>
             </div>
-            `
-                : ""
-            }
           </div>
           ${heatmapHTML}
         </div>
@@ -680,7 +702,12 @@ function renderHabits() {
   const svgBad = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
 
   let html = `
-    <div class="habits-stats">
+    <div class="habits-stats" id="habitsStats">
+      <button class="hstats-toggle" onclick="toggleStats()" title="Згорнути/розгорнути">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
       <div class="hstats-panels">
         <div class="hstats-panel">
           <div class="hstats-panel-label">Сьогодні</div>
@@ -718,6 +745,17 @@ function renderHabits() {
   }
 
   container.innerHTML = html;
+
+  // Відновлюємо стан згортання з localStorage
+  const statsBlock = document.getElementById("habitsStats");
+  if (statsBlock) {
+    const savedCollapsed = localStorage.getItem("habitsStatsCollapsed");
+    if (savedCollapsed === "true") {
+      statsBlock.classList.add("collapsed");
+    } else {
+      statsBlock.classList.remove("collapsed");
+    }
+  }
 
   // Додаємо event listeners для hover на всі heatmap
   setupHoverListeners();

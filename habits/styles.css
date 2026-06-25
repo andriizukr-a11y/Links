@@ -52,10 +52,92 @@ body {
     border: 1px solid #262626;
     border-radius: 16px;
     overflow: hidden;
+    position: relative;
+    transition:
+        background 0.3s,
+        border-color 0.3s,
+        max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 500px; /* Початкова висота для анімації */
+}
+
+.habits-stats.collapsed .hstats-panels {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    height: 0;
+    overflow: hidden;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.habits-stats.collapsed {
+    background: transparent;
+    border-color: transparent;
+    max-height: 90px; /* Висота для кнопки та чіпів */
+    overflow: visible;
+}
+
+.hstats-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition:
+        opacity 0.2s,
+        background 0.2s,
+        transform 0.3s;
+    z-index: 10;
+}
+
+.habits-stats:hover .hstats-toggle,
+.habits-stats.collapsed .hstats-toggle {
+    opacity: 1;
+}
+
+.hstats-toggle:hover {
+    background: rgba(91, 156, 245, 0.1);
+    border-color: rgba(91, 156, 245, 0.3);
+}
+
+.hstats-toggle:hover svg {
+    stroke: #5b9cf5;
+}
+
+.hstats-toggle svg {
+    width: 16px;
+    height: 16px;
+    stroke: #888;
+    transition:
+        transform 0.3s,
+        stroke 0.2s;
+}
+
+.habits-stats.collapsed .hstats-toggle svg {
+    transform: rotate(90deg);
+}
+
+.habits-stats:not(.collapsed) .hstats-toggle svg {
+    transform: rotate(0deg);
 }
 
 .hstats-panels {
     display: flex;
+    transition:
+        opacity 0.3s,
+        transform 0.3s;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .hstats-panel {
@@ -68,6 +150,7 @@ body {
 
 .hstats-panel:first-child {
     border-right: 1px solid #262626;
+    padding-right: 40px;
 }
 
 .hstats-panel-label {
@@ -133,6 +216,18 @@ body {
 .hstats-chips {
     display: flex;
     border-top: 1px solid #212121;
+    transition:
+        opacity 0.3s,
+        transform 0.3s,
+        border-color 0.3s;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.habits-stats.collapsed .hstats-chips {
+    border: 1px solid #212121;
+    border-radius: 10px;
+    background: transparent;
 }
 
 .hstats-chip {
@@ -274,6 +369,78 @@ body {
     margin-bottom: 12px;
     min-width: 140px;
     justify-content: flex-start;
+}
+
+.habit-top-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.habit-checkbox {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    background-color: transparent;
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.habit-checkbox:hover {
+    background-color: rgba(91, 156, 245, 0.1);
+    border-color: rgba(91, 156, 245, 0.4);
+}
+
+.habit-checkbox svg {
+    width: 20px;
+    height: 20px;
+    color: #555;
+    transition: color 0.2s;
+}
+
+.habit-checkbox.done {
+    background-color: #5b9cf5;
+    border-color: #5b9cf5;
+}
+
+.habit-checkbox.done svg {
+    color: #ffffff;
+}
+
+.habit-checkbox.skipped {
+    border: 1.5px solid rgba(248, 81, 73, 0.5);
+    background: rgba(248, 81, 73, 0.05);
+}
+
+.habit-checkbox.skipped svg {
+    color: #f85149;
+}
+
+.habit-checkbox.bad-checkbox {
+    border-color: rgba(255, 255, 255, 0.15);
+    background-color: transparent;
+}
+
+.habit-checkbox.bad-checkbox:hover {
+    background-color: rgba(248, 81, 73, 0.1);
+    border-color: rgba(248, 81, 73, 0.3);
+}
+
+.habit-checkbox.bad-checkbox svg {
+    color: #555;
+}
+
+.habit-checkbox.bad-checkbox.done {
+    background-color: rgba(248, 81, 73, 0.15);
+    border-color: rgba(248, 81, 73, 0.5);
+}
+
+.habit-checkbox.bad-checkbox.done svg {
+    color: #f85149;
 }
 
 .habit-icon {
