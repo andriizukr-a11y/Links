@@ -310,7 +310,6 @@ body {
 }
 
 .habit-card.bad-habit {
-    background: #1a1818;
     border-color: #4a2c2c;
 }
 
@@ -322,10 +321,6 @@ body {
     background: #388bfd47;
     border-color: #388bfd;
     box-shadow: 0 0 4px rgba(56, 139, 253, 0.5);
-}
-
-.habit-card.bad-habit .streak-badge {
-    color: #f85149;
 }
 
 .habit-card.bad-habit .streak-badge svg {
@@ -1571,10 +1566,6 @@ body {
     height: 18px;
 }
 
-.streak-badge.bad-streak {
-    color: #f85149;
-}
-
 .streak-badge.bad-streak svg {
     color: #f85149;
 }
@@ -1582,8 +1573,4 @@ body {
 .streak-count {
     min-width: 20px;
     padding-left: 3px;
-}
-
-.bad-streak .streak-count {
-    color: #f85149;
 }
