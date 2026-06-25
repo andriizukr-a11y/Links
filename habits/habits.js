@@ -560,6 +560,39 @@ function renderHabits() {
     const habitSkippedSet = new Set(habit.skippedDates || []);
     const habitHalfSet = new Set(habit.halfDates || []);
 
+    // Для шкідливих звичок: будуємо Set дат, що лежать між
+    // сусідніми відміченими клітинками (і від останньої до сьогодні)
+    const cleanDatesSet = new Set();
+    if (habitType === "bad") {
+      const sortedDates = [...habit.dates].sort();
+      for (let i = 0; i < sortedDates.length - 1; i++) {
+        const from = sortedDates[i];
+        const to = sortedDates[i + 1];
+        // Додаємо всі дати між двома сусідніми active-датами
+        let d = new Date(from);
+        d.setDate(d.getDate() + 1);
+        const end = new Date(to);
+        while (d < end) {
+          cleanDatesSet.add(d.toISOString().slice(0, 10));
+          d.setDate(d.getDate() + 1);
+        }
+      }
+      // Від останньої active-дати до сьогодні
+      if (sortedDates.length > 0) {
+        const last = sortedDates[sortedDates.length - 1];
+        if (last < today) {
+          let d = new Date(last);
+          d.setDate(d.getDate() + 1);
+          const end = new Date(today);
+          end.setDate(end.getDate() + 1); // включаємо today
+          while (d < end) {
+            cleanDatesSet.add(d.toISOString().slice(0, 10));
+            d.setDate(d.getDate() + 1);
+          }
+        }
+      }
+    }
+
     // Heatmap grid
     heatmapHTML += '<div class="heatmap">';
     weeks.forEach((week, weekIdx) => {
@@ -571,7 +604,12 @@ function renderHabits() {
         const isSkipped = habitSkippedSet.has(dateStr);
         const isHalf = habitHalfSet.has(dateStr);
         const isToday = dateStr === today;
-        const isFuture = dateStr > today; // Add this line
+        const isFuture = dateStr > today;
+        const isClean =
+          habitType === "bad" &&
+          cleanDatesSet.has(dateStr) &&
+          !isActive &&
+          !isSkipped;
 
         // Конвертуємо дату у формат dd.mm.yyyy для відображення
         const [year, month, day] = dateStr.split("-");
@@ -579,14 +617,14 @@ function renderHabits() {
 
         if (isPadding) {
           // Клітинки з попереднього/наступного року - можна натискати, але вони з іншим стилем
-          heatmapHTML += `<div class="day-cell padding ${isActive ? "active" : ""} ${isSkipped ? "skipped" : ""} ${isHalf ? "half" : ""}"
+          heatmapHTML += `<div class="day-cell padding ${isActive ? "active" : ""} ${isSkipped ? "skipped" : ""} ${isHalf ? "half" : ""} ${isClean ? "clean" : ""}"
             onclick="toggleDate(${habit.id}, '${dateStr}', event)"
             oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
             onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
             data-date="${displayDate}"></div>`;
         } else {
           // Клітинки поточного року
-          heatmapHTML += `<div class="day-cell ${isActive ? "active" : ""} ${isSkipped ? "skipped" : ""} ${isHalf ? "half" : ""} ${isToday ? "today" : ""} ${isFuture ? "future" : ""}"
+          heatmapHTML += `<div class="day-cell ${isActive ? "active" : ""} ${isSkipped ? "skipped" : ""} ${isHalf ? "half" : ""} ${isToday ? "today" : ""} ${isFuture ? "future" : ""} ${isClean ? "clean" : ""}"
           onclick="toggleDate(${habit.id}, '${dateStr}', event)"
           oncontextmenu="toggleSkippedDate(${habit.id}, '${dateStr}', event)"
           onmousedown="handleMiddleClick(${habit.id}, '${dateStr}', event)"
