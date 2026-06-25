@@ -319,7 +319,7 @@ body {
 }
 
 .habit-card.bad-habit .day-cell.clean {
-    background: #1a3a5c;
+    background: #388bfd47;
     border-color: #388bfd;
     box-shadow: 0 0 4px rgba(56, 139, 253, 0.5);
 }
