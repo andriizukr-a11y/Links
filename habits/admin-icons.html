@@ -232,6 +232,26 @@
                     text-align: center;
                     word-break: break-all;
                     line-height: 1.3;
+                    cursor: text;
+                    border-radius: 4px;
+                    padding: 1px 3px;
+                    transition: background 0.15s;
+                }
+                .icon-id:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                }
+                .icon-id-input {
+                    width: 100%;
+                    background: #2a2a2a;
+                    border: 1px solid #5b9cf5;
+                    border-radius: 4px;
+                    color: #e8e8e8;
+                    font-size: 9.5px;
+                    font-family: "Courier New", monospace;
+                    text-align: center;
+                    padding: 1px 3px;
+                    outline: none;
+                    box-sizing: border-box;
                 }
                 .icon-del {
                     position: absolute;
@@ -632,9 +652,71 @@
                             icons = icons.filter((i) => i.id !== icon.id);
                             setDirty(true);
                             renderIcons();
-                            showToast(`− "${icon.id}" видалено`, "success");
+                            showToast(`Видалено: ${icon.id}`, "success");
                         },
                     );
+
+                    const idEl = cell.querySelector(".icon-id");
+                    idEl.addEventListener("dblclick", (e) => {
+                        e.stopPropagation();
+                        const oldId = icon.id;
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.value = oldId;
+                        input.className = "icon-id-input";
+                        idEl.replaceWith(input);
+                        input.focus();
+                        input.select();
+
+                        const commit = () => {
+                            let newId = input.value
+                                .trim()
+                                .toLowerCase()
+                                .replace(/\s+/g, "-");
+                            input.replaceWith(idEl);
+                            if (!newId || newId === oldId) {
+                                idEl.textContent = oldId;
+                                return;
+                            }
+                            if (
+                                icons.some(
+                                    (i) => i.id === newId && i.id !== oldId,
+                                )
+                            ) {
+                                let n = 2;
+                                while (
+                                    icons.some(
+                                        (i) =>
+                                            i.id === `${newId}${n}` &&
+                                            i.id !== oldId,
+                                    )
+                                )
+                                    n++;
+                                newId = `${newId}${n}`;
+                            }
+                            idEl.textContent = newId;
+                            const item = icons.find((i) => i.id === oldId);
+                            if (item) item.id = newId;
+                            setDirty(true);
+                            renderIcons();
+                            showToast(
+                                `тХи╨▓тХитЦСтХитХХтХитХЭтХитХбтХитХЬтХитХЫсГХтХитЦСтХитХЬтХитХЫ: ${oldId} тЖТ ${newId}`,
+                                "success",
+                            );
+                        };
+
+                        input.addEventListener("keydown", (ev) => {
+                            if (ev.key === "Enter") {
+                                ev.preventDefault();
+                                commit();
+                            }
+                            if (ev.key === "Escape") {
+                                ev.preventDefault();
+                                input.replaceWith(idEl);
+                            }
+                        });
+                        input.addEventListener("blur", commit);
+                    });
 
                     list.appendChild(cell);
                 });
