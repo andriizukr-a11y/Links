@@ -39,7 +39,7 @@ body {
 .tabs {
     display: flex;
     gap: 0;
-    margin-bottom: 30px;
+    margin: 0 40px 30px 40px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 0;
     flex-wrap: wrap;
