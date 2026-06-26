@@ -824,6 +824,39 @@
     opacity: 1;
 }
 
+@keyframes add-btn-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(91, 156, 245, 0 5);
+        opacity: 1;
+    }
+    50% {
+        box-shadow: 0 0 0 12px rgba(91, 156, 245, 0);
+        opacity: 0.7;
+    }
+}
+
+.add-btn-empty {
+    animation: add-btn-highlight 1.5s ease-in-out infinite;
+    opacity: 1;
+}
+
+@keyframes add-btn-highlight {
+    0%,
+    100% {
+        box-shadow:
+            0 0 6px 0 rgba(91, 156, 245, 0.15),
+            0 0 0 0 rgba(91, 156, 245, 0);
+        color: rgba(91, 156, 245, 0.6);
+    }
+    50% {
+        box-shadow:
+            0 0 18px 4px rgba(91, 156, 245, 0.35),
+            0 0 36px 8px rgba(91, 156, 245, 0.12);
+        color: #8ec5ff;
+    }
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -1163,6 +1196,12 @@
 .empty-state h3 {
     font-size: 24px;
     color: #ffffff;
+}
+
+.plus-highlight {
+    color: #5b9cf5;
+    font-size: 1.3em;
+    font-weight: 700;
 }
 
 /* Custom tooltip */

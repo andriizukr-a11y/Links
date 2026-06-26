@@ -429,13 +429,21 @@ function renderHabits() {
   const container = document.getElementById("habitsContainer");
   if (!container) return;
 
+  const addBtn = document.querySelector(".add-btn");
+  const isEmpty =
+    !habits.length ||
+    (habits.length &&
+      !habits.filter((h) => (h.type || "good") === "good").length &&
+      !habits.filter((h) => h.type === "bad").length);
+
   if (!habits.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <h3>Ще немає звичок</h3>
-        <p>Натисніть кнопку +, щоб додати першу звичку</p>
+        <h3>Ще немає жодної звички</h3>
+        <p>Натисніть на <b class="plus-highlight">+</b> у правому нижньому куті, щоб додати першу звичку.</p>
       </div>
     `;
+    if (addBtn) addBtn.classList.add("add-btn-empty");
     return;
   }
 
@@ -446,12 +454,15 @@ function renderHabits() {
   if (!goodHabits.length && !badHabits.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <h3>Ще немає звичок</h3>
-        <p>Натисніть кнопку +, щоб додати першу звичку</p>
+        <h3>Ще немає жодної звички</h3>
+        <p>Натисніть <b class="plus-highlight">+</b> у правому нижньому куті, щоб додати першу звичку.</p>
       </div>
     `;
+    if (addBtn) addBtn.classList.add("add-btn-empty");
     return;
   }
+
+  if (addBtn) addBtn.classList.remove("add-btn-empty");
 
   // Очищаємо кеш, щоб гарантувати свіжі дані
   if (typeof clearYearDatesCache === "function") {
