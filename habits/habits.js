@@ -554,6 +554,7 @@ function renderHabits() {
         : 0;
     const monthData =
       typeof getMonthData === "function" ? getMonthData(habit.dates) : [];
+    const habitType = habit.type || "good";
     const isDoneToday = habit.dates.includes(today);
     const isSkippedToday =
       habit.skippedDates && habit.skippedDates.includes(today);
@@ -565,7 +566,6 @@ function renderHabits() {
       !isSkippedToday;
     const maxMonth =
       monthData.length > 0 ? Math.max(...monthData.map((m) => m.count), 1) : 1;
-    const habitType = habit.type || "good";
 
     // Build heatmap HTML
     let heatmapHTML = '<div class="heatmap-wrapper">';
@@ -707,7 +707,7 @@ function renderHabits() {
               `
                     : ""
               }
-              <div class="habit-checkbox ${habitType === "bad" ? "bad-checkbox" : ""} ${isDoneToday ? "done" : ""} ${isSkippedToday ? "skipped" : ""} ${isCleanToday ? "clean" : ""}" onclick="toggleToday(${habit.id}, event)" oncontextmenu="${habitType === "bad" ? `toggleCleanDate(${habit.id}, '${today}', event)` : `toggleSkippedDate(${habit.id}, '${today}', event)`}">
+              <div class="habit-checkbox ${habitType === "bad" ? "bad-checkbox" : "good-checkbox"} ${isDoneToday ? "done" : ""} ${isSkippedToday ? "skipped" : ""} ${isCleanToday ? "clean" : ""}" onclick="toggleToday(${habit.id}, event)" oncontextmenu="${habitType === "bad" ? `toggleCleanDate(${habit.id}, '${today}', event)` : `toggleSkippedDate(${habit.id}, '${today}', event)`}">
                 ${
                   isSkippedToday
                     ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`

@@ -34,6 +34,13 @@ function toggleDate(habitId, dateStr, event = null) {
         habit.skippedDates.splice(skippedIdx, 1);
       }
     }
+    // При позначенні як "впав у звичку" — прибираємо з cleanDates
+    if (habit.cleanDates) {
+      const cleanIdx = habit.cleanDates.indexOf(dateStr);
+      if (cleanIdx > -1) {
+        habit.cleanDates.splice(cleanIdx, 1);
+      }
+    }
 
     // Для шкідливих звичок використовуємо інші звуки та ефекти
     if (habitType === "bad") {

@@ -404,55 +404,42 @@ body {
     transition: color 0.2s;
 }
 
-.habit-checkbox.done {
+.habit-checkbox.good-checkbox.done,
+.habit-checkbox.bad-checkbox.clean {
     background-color: #5b9cf5;
     border-color: #5b9cf5;
+    box-shadow: 0 0 6px rgba(56, 139, 253, 0.4);
 }
 
-.habit-checkbox.done svg {
+.habit-checkbox.good-checkbox.done svg,
+.habit-checkbox.bad-checkbox.clean svg {
     color: #ffffff;
 }
 
-.habit-checkbox.skipped {
-    border: 1.5px solid rgba(248, 81, 73, 0.5);
-    background: rgba(248, 81, 73, 0.05);
-}
-
-.habit-checkbox.skipped svg {
-    color: #f85149;
-}
-
-.habit-checkbox.bad-checkbox {
-    border-color: rgba(255, 255, 255, 0.15);
-    background-color: transparent;
-}
-
-.habit-checkbox.bad-checkbox:hover {
-    background-color: rgba(248, 81, 73, 0.1);
-    border-color: rgba(248, 81, 73, 0.3);
-}
-
-.habit-checkbox.bad-checkbox svg {
-    color: #555;
-}
-
+.habit-checkbox.skipped,
 .habit-checkbox.bad-checkbox.done {
-    background-color: rgba(248, 81, 73, 0.15);
-    border-color: rgba(248, 81, 73, 0.5);
+    border: 1.5px solid rgba(248, 81, 73, 0.5);
+    background: rgba(248, 81, 73, 0.1);
+    box-shadow: 0 0 6px rgba(248, 81, 73, 0.15);
 }
 
+.habit-checkbox.skipped svg,
 .habit-checkbox.bad-checkbox.done svg {
     color: #f85149;
 }
 
-.habit-checkbox.bad-checkbox.clean {
-    background: rgba(56, 139, 253, 0.15);
-    border-color: #388bfd;
-    box-shadow: 0 0 6px rgba(56, 139, 253, 0.4);
+.habit-checkbox.bad-checkbox {
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
-.habit-checkbox.bad-checkbox.clean svg {
-    color: #388bfd;
+.habit-checkbox.bad-checkbox:not(.done):not(.clean):hover {
+    background-color: rgba(248, 81, 73, 0.1);
+    border-color: rgba(248, 81, 73, 0.3);
+}
+
+.habit-checkbox.bad-checkbox:not(.done):not(.clean):hover svg {
+    color: rgba(248, 81, 73, 0.4);
 }
 
 .habit-icon {
@@ -473,7 +460,6 @@ body {
 
 .habit-icon:hover {
     background: #323232;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
 }
 
 .habit-icon svg {
