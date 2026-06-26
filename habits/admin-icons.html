@@ -157,12 +157,16 @@
                 .btn-add {
                     background: #5b9cf5;
                     color: #fff;
-                    flex: 1;
+                    padding: 10px 35px;
                 }
                 .btn-ghost {
                     background: #1f1f1f;
                     color: #666;
                     border: 1px solid #282828;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    text-decoration: none;
                 }
 
                 /* ── ICONS GRID ─────────────────────────── */
@@ -265,16 +269,11 @@
                     align-items: center;
                     gap: 12px;
                 }
-                .file-bar-name {
-                    font-family: "Courier New", monospace;
-                    font-size: 13px;
-                    color: #444;
-                    flex: 1;
-                }
                 .save-status {
                     font-size: 11px;
                     color: #3a3a3a;
                     transition: color 0.2s;
+                    margin-left: auto;
                 }
                 .save-status.dirty {
                     color: #c09030;
@@ -387,11 +386,10 @@
 
         <!-- ── FILE BAR ──────────────────────────────── -->
         <div class="file-bar">
-            <span class="file-bar-name">icons.js</span>
             <a
                 href="https://lucide.dev/icons/"
                 target="_blank"
-                class="btn btn-lucide"
+                class="btn btn-ghost"
                 ><svg
                     width="13"
                     height="13"
@@ -503,7 +501,15 @@
             document.getElementById("addBtn").addEventListener("click", () => {
                 const rawId = document.getElementById("iconId").value.trim();
                 const svg = document.getElementById("svgCode").value.trim();
-                const id = rawId.toLowerCase().replace(/\s+/g, "-");
+
+                let id;
+                if (rawId) {
+                    id = rawId.toLowerCase().replace(/\s+/g, "-");
+                } else {
+                    let n = 1;
+                    while (icons.some((i) => i.id === `icon${n}`)) n++;
+                    id = `icon${n}`;
+                }
 
                 if (!id) {
                     showToast("Введіть ID іконки", "error");
