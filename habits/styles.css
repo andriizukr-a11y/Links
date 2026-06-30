@@ -518,6 +518,18 @@
     border-color: #555;
 }
 
+/*.day-cell.today::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #f0883e;
+    z-index: 1;
+}*/
+
 .day-cell.future {
     opacity: 0.5;
 }
@@ -1590,6 +1602,7 @@
 .streak-badge.broken-streak svg {
     color: #8b949e;
     margin-top: 4px;
+    margin-right: 2px;
 }
 
 .streak-badge.bad-streak svg {

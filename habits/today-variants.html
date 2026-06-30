@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="uk">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Today Cell Variants</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: #0d0d0d;
+                color: #ccc;
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                padding: 40px;
+            }
+
+            h1 {
+                font-size: 22px;
+                font-weight: 600;
+                color: #e0e0e0;
+                margin-bottom: 8px;
+            }
+
+            .subtitle {
+                font-size: 13px;
+                color: #666;
+                margin-bottom: 32px;
+            }
+
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 20px;
+            }
+
+            .card {
+                background: #1b1b1b;
+                border: 1px solid #262626;
+                border-radius: 12px;
+                padding: 16px;
+            }
+
+            .card-title {
+                font-size: 13px;
+                font-weight: 600;
+                color: #e0e0e0;
+                margin-bottom: 4px;
+            }
+
+            .card-desc {
+                font-size: 11px;
+                color: #555;
+                margin-bottom: 12px;
+                line-height: 1.4;
+            }
+
+            .day-cell {
+                width: 12px;
+                height: 12px;
+                border-radius: 2px;
+                background: #282828;
+                border: 1px solid #333333;
+                cursor: pointer;
+                flex-shrink: 0;
+                margin-right: 3px;
+                margin-bottom: 3px;
+            }
+
+            .day-cell.active {
+                background: #388bfd;
+                border-color: transparent !important;
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            }
+
+            .day-cell.skipped {
+                background:
+                    repeating-linear-gradient(
+                        135deg,
+                        transparent 0px,
+                        transparent 2px,
+                        rgba(248, 81, 73, 0.9) 2px,
+                        rgba(248, 81, 73, 0.9) 4px
+                    ),
+                    #1a1a1a;
+                border-color: #f85149;
+                opacity: 0.75;
+            }
+
+            .day-cell.half {
+                background: linear-gradient(to right, #388bfd 50%, #282828 50%);
+                border-color: transparent;
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            }
+
+            .day-cell.future {
+                opacity: 0.5;
+            }
+
+            .cells-row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: flex-start;
+            }
+
+            /* Current (default) */
+            .variant-current .day-cell.today {
+                position: relative;
+                border-color: #555;
+            }
+
+            /* 1. Soft blue glow */
+            .variant-1 .day-cell.today {
+                position: relative;
+                border-color: #388bfd;
+                box-shadow: 0 0 4px rgba(56, 139, 253, 0.5);
+            }
+
+            /* 2. Bright blue glow */
+            .variant-2 .day-cell.today {
+                position: relative;
+                border-color: #58a6ff;
+                box-shadow:
+                    0 0 6px rgba(88, 166, 255, 0.7),
+                    0 0 12px rgba(88, 166, 255, 0.3);
+            }
+
+            /* 3. White border */
+            .variant-3 .day-cell.today {
+                position: relative;
+                border-color: rgba(255, 255, 255, 0.6);
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+            }
+
+            /* 4. Yellow border */
+            .variant-4 .day-cell.today {
+                position: relative;
+                border-color: #e3b341;
+                box-shadow: 0 0 3px rgba(227, 179, 65, 0.4);
+            }
+
+            /* 5. Orange border */
+            .variant-5 .day-cell.today {
+                position: relative;
+                border-color: #f0883e;
+                box-shadow: 0 0 4px rgba(240, 136, 62, 0.5);
+            }
+
+            /* 6. Cyan border */
+            .variant-6 .day-cell.today {
+                position: relative;
+                border-color: #39d2c0;
+                box-shadow: 0 0 4px rgba(57, 210, 192, 0.5);
+            }
+
+            /* 7. Purple border */
+            .variant-7 .day-cell.today {
+                position: relative;
+                border-color: #a371f7;
+                box-shadow: 0 0 4px rgba(163, 113, 247, 0.5);
+            }
+
+            /* 8. Pink border */
+            .variant-8 .day-cell.today {
+                position: relative;
+                border-color: #f778ba;
+                box-shadow: 0 0 4px rgba(247, 120, 186, 0.5);
+            }
+
+            /* 9. Green border */
+            .variant-9 .day-cell.today {
+                position: relative;
+                border-color: #3fb950;
+                box-shadow: 0 0 4px rgba(63, 185, 80, 0.5);
+            }
+
+            /* 10. Double border */
+            .variant-10 .day-cell.today {
+                position: relative;
+                border-color: #58a6ff;
+                box-shadow: inset 0 0 0 1px rgba(88, 166, 255, 0.3);
+            }
+
+            /* 11. Pulsing blue */
+            .variant-11 .day-cell.today {
+                position: relative;
+                border-color: #388bfd;
+                animation: today-pulse 2s ease-in-out infinite;
+            }
+
+            @keyframes today-pulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 2px rgba(56, 139, 253, 0.3);
+                }
+                50% {
+                    box-shadow: 0 0 6px rgba(56, 139, 253, 0.7);
+                }
+            }
+
+            /* 12. Pulsing gold */
+            .variant-12 .day-cell.today {
+                position: relative;
+                border-color: #e3b341;
+                animation: today-pulse-warm 2s ease-in-out infinite;
+            }
+
+            @keyframes today-pulse-warm {
+                0%,
+                100% {
+                    box-shadow: 0 0 2px rgba(227, 179, 65, 0.2);
+                }
+                50% {
+                    box-shadow: 0 0 6px rgba(227, 179, 65, 0.6);
+                }
+            }
+
+            /* 13. Inner dot - blue */
+            .variant-13 .day-cell.today {
+                position: relative;
+                border-color: #555;
+            }
+
+            .variant-13 .day-cell.today::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background: #58a6ff;
+            }
+
+            /* 14. Inner dot - gold */
+            .variant-14 .day-cell.today {
+                position: relative;
+                border-color: #555;
+            }
+
+            .variant-14 .day-cell.today::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background: #e3b341;
+            }
+
+            /* 15. Corner marker */
+            .variant-15 .day-cell.today {
+                position: relative;
+                border-color: #555;
+            }
+
+            .variant-15 .day-cell.today::after {
+                content: "";
+                position: absolute;
+                top: -1px;
+                right: -1px;
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background: #f0883e;
+                z-index: 1;
+            }
+
+            /* 16. Bottom line */
+            .variant-16 .day-cell.today {
+                position: relative;
+                border-color: #555;
+            }
+
+            .variant-16 .day-cell.today::after {
+                content: "";
+                position: absolute;
+                bottom: -1px;
+                left: 1px;
+                right: 1px;
+                height: 2px;
+                border-radius: 1px;
+                background: #388bfd;
+            }
+
+            /* 17. Semi-transparent bg + border */
+            .variant-17 .day-cell.today {
+                position: relative;
+                background: rgba(56, 139, 253, 0.15);
+                border-color: rgba(56, 139, 253, 0.5);
+            }
+
+            /* 18. Gradient border */
+            .variant-18 .day-cell.today {
+                position: relative;
+                border-color: transparent;
+                background:
+                    linear-gradient(#282828, #282828) padding-box,
+                    linear-gradient(135deg, #388bfd, #a371f7) border-box;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Today Cell &#8212; 18 Variants</h1>
+        <p class="subtitle">
+            Each card: &#8230; &#183; skipped &#183; active &#183;
+            <strong>today</strong> &#183; future &#183; &#8230;
+        </p>
+
+        <div class="grid">
+            <div class="card variant-current">
+                <div class="card-title">Current (default)</div>
+                <div class="card-desc">border-color: #555</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-1">
+                <div class="card-title">1. Soft blue glow</div>
+                <div class="card-desc">border + box-shadow blue</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-2">
+                <div class="card-title">2. Bright blue glow</div>
+                <div class="card-desc">double box-shadow, strong halo</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-3">
+                <div class="card-title">3. White border</div>
+                <div class="card-desc">
+                    contrast white outline + inset shadow
+                </div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-4">
+                <div class="card-title">4. Yellow border</div>
+                <div class="card-desc">warm accent #e3b341</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-5">
+                <div class="card-title">5. Orange border</div>
+                <div class="card-desc">bright warm #f0883e</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-6">
+                <div class="card-title">6. Cyan border</div>
+                <div class="card-desc">cool cyan #39d2c0</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-7">
+                <div class="card-title">7. Purple border</div>
+                <div class="card-desc">elegant #a371f7</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-8">
+                <div class="card-title">8. Pink border</div>
+                <div class="card-desc">soft pink #f778ba</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-9">
+                <div class="card-title">9. Green border</div>
+                <div class="card-desc">"opportunity" #3fb950</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-10">
+                <div class="card-title">10. Double border</div>
+                <div class="card-desc">border + inset shadow for depth</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-11">
+                <div class="card-title">11. Pulsing blue</div>
+                <div class="card-desc">animation: today-pulse 2s infinite</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-12">
+                <div class="card-title">12. Pulsing gold</div>
+                <div class="card-desc">
+                    animation: today-pulse-warm 2s infinite
+                </div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-13">
+                <div class="card-title">13. Inner dot - blue</div>
+                <div class="card-desc">::after circle centered, 4px</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-14">
+                <div class="card-title">14. Inner dot - gold</div>
+                <div class="card-desc">::after circle centered, gold</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-15">
+                <div class="card-title">15. Corner marker</div>
+                <div class="card-desc">::after circle top-right corner</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-16">
+                <div class="card-title">16. Bottom line</div>
+                <div class="card-desc">::after blue stripe at bottom</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-17">
+                <div class="card-title">17. Semi-transparent bg + border</div>
+                <div class="card-desc">background: rgba(56,139,253,0.15)</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-18">
+                <div class="card-title">18. Gradient border</div>
+                <div class="card-desc">linear-gradient blue to purple</div>
+                <div class="cells-row">
+                    <div class="day-cell"></div>
+                    <div class="day-cell"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell skipped"></div>
+                    <div class="day-cell today"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell future"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: today + active -->
+        <h1 style="margin-top: 48px">Today + Active (checked today)</h1>
+        <p class="subtitle">
+            How today looks when cell is already active - check for conflicts
+        </p>
+
+        <div class="grid">
+            <div class="card variant-current">
+                <div class="card-title">Current (default)</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-1">
+                <div class="card-title">1. Soft blue glow</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-2">
+                <div class="card-title">2. Bright blue glow</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-3">
+                <div class="card-title">3. White border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-4">
+                <div class="card-title">4. Yellow border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-5">
+                <div class="card-title">5. Orange border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-6">
+                <div class="card-title">6. Cyan border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-7">
+                <div class="card-title">7. Purple border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-8">
+                <div class="card-title">8. Pink border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-9">
+                <div class="card-title">9. Green border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-10">
+                <div class="card-title">10. Double border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-11">
+                <div class="card-title">11. Pulsing blue</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-12">
+                <div class="card-title">12. Pulsing gold</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-13">
+                <div class="card-title">13. Inner dot - blue</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-14">
+                <div class="card-title">14. Inner dot - gold</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-15">
+                <div class="card-title">15. Corner marker</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-16">
+                <div class="card-title">16. Bottom line</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-17">
+                <div class="card-title">17. Semi-transparent bg + border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+
+            <div class="card variant-18">
+                <div class="card-title">18. Gradient border</div>
+                <div class="cells-row">
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell active today"></div>
+                    <div class="day-cell active"></div>
+                    <div class="day-cell"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Full heatmap row -->
+        <h1 style="margin-top: 48px">Full heatmap row (7 weeks)</h1>
+        <p class="subtitle">Realistic look - today in context of a long row</p>
+
+        <div class="grid">
+            <div class="card variant-current">
+                <div class="card-title">Current (default)</div>
+                <div class="cells-row" id="row-current"></div>
+            </div>
+
+            <div class="card variant-1">
+                <div class="card-title">1. Soft blue glow</div>
+                <div class="cells-row" id="row-1"></div>
+            </div>
+
+            <div class="card variant-4">
+                <div class="card-title">4. Yellow border</div>
+                <div class="cells-row" id="row-4"></div>
+            </div>
+
+            <div class="card variant-11">
+                <div class="card-title">11. Pulsing blue</div>
+                <div class="cells-row" id="row-11"></div>
+            </div>
+
+            <div class="card variant-12">
+                <div class="card-title">12. Pulsing gold</div>
+                <div class="cells-row" id="row-12"></div>
+            </div>
+
+            <div class="card variant-13">
+                <div class="card-title">13. Inner dot - blue</div>
+                <div class="cells-row" id="row-13"></div>
+            </div>
+
+            <div class="card variant-15">
+                <div class="card-title">15. Corner marker</div>
+                <div class="cells-row" id="row-15"></div>
+            </div>
+
+            <div class="card variant-16">
+                <div class="card-title">16. Bottom line</div>
+                <div class="cells-row" id="row-16"></div>
+            </div>
+
+            <div class="card variant-17">
+                <div class="card-title">17. Semi-transparent bg</div>
+                <div class="cells-row" id="row-17"></div>
+            </div>
+
+            <div class="card variant-18">
+                <div class="card-title">18. Gradient border</div>
+                <div class="cells-row" id="row-18"></div>
+            </div>
+        </div>
+
+        <script>
+            var totalCells = 49;
+            var todayIndex = 38;
+
+            var pattern = [
+                0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1,
+                1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1,
+                0, 1, 1, 0, 0, 0, 0,
+            ];
+
+            var rows = [
+                "row-current",
+                "row-1",
+                "row-4",
+                "row-11",
+                "row-12",
+                "row-13",
+                "row-15",
+                "row-16",
+                "row-17",
+                "row-18",
+            ];
+
+            for (var r = 0; r < rows.length; r++) {
+                var container = document.getElementById(rows[r]);
+                if (!container) continue;
+
+                for (var i = 0; i < totalCells; i++) {
+                    var cell = document.createElement("div");
+                    cell.className = "day-cell";
+
+                    if (i < todayIndex) {
+                        if (pattern[i] === 1) cell.classList.add("active");
+                    } else if (i === todayIndex) {
+                        cell.classList.add("today");
+                    } else {
+                        cell.classList.add("future");
+                    }
+
+                    container.appendChild(cell);
+                }
+            }
+        </script>
+    </body>
+</html>
