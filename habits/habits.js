@@ -607,14 +607,17 @@ function renderHabits() {
           d.setDate(d.getDate() + 1);
         }
       }
-      // Від останньої active-дати до сьогодні
+      // Від останньої active-дати до вчора (не включаючи сьогодні)
       if (sortedDates.length > 0) {
         const last = sortedDates[sortedDates.length - 1];
-        if (last < today) {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().slice(0, 10);
+        if (last < yesterdayStr) {
           let d = new Date(last);
           d.setDate(d.getDate() + 1);
-          const end = new Date(today);
-          end.setDate(end.getDate() + 1); // включаємо today
+          const end = new Date(yesterdayStr);
+          end.setDate(end.getDate() + 1); // включаємо yesterday
           while (d < end) {
             cleanDatesSet.add(d.toISOString().slice(0, 10));
             d.setDate(d.getDate() + 1);
